@@ -1,0 +1,337 @@
+.superadmin-login-page {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.superadmin-login-page::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 500px;
+  height: 500px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+  animation: float 6s ease-in-out infinite;
+}
+
+.superadmin-login-page::after {
+  content: '';
+  position: absolute;
+  bottom: -30%;
+  left: -5%;
+  width: 400px;
+  height: 400px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 50%;
+  animation: float 8s ease-in-out infinite reverse;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(30px, 30px);
+  }
+}
+
+.superadmin-login-container {
+  background: white;
+  border-radius: 20px;
+  padding: 60px 50px;
+  max-width: 450px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 10;
+  animation: slideUp 0.6s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.superadmin-lock-icon {
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 48px;
+  color: #667eea;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.superadmin-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #333;
+  text-align: center;
+  margin-bottom: 10px;
+  margin-top: 0;
+}
+
+.superadmin-subtitle {
+  color: #666;
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.superadmin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.superadmin-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.superadmin-label {
+  color: #333;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.superadmin-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.superadmin-input {
+  width: 100%;
+  padding: 14px 16px 14px 45px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  background-color: #f8f9fa;
+}
+
+.superadmin-input:focus {
+  outline: none;
+  border-color: #667eea;
+  background-color: white;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.superadmin-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.superadmin-input-icon {
+  position: absolute;
+  left: 14px;
+  color: #667eea;
+  font-size: 16px;
+  pointer-events: none;
+}
+
+.superadmin-password-toggle {
+  position: absolute;
+  right: 14px;
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.3s ease;
+}
+
+.superadmin-password-toggle:hover:not(:disabled) {
+  color: #667eea;
+}
+
+.superadmin-password-toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.superadmin-error-message {
+  background-color: #fee;
+  color: #c33;
+  padding: 12px 16px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  border-left: 4px solid #c33;
+  animation: slideDown 0.3s ease-out;
+}
+
+.superadmin-success-message {
+  background-color: rgba(76, 175, 80, 0.1);
+  color: #4CAF50;
+  padding: 12px 16px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  border-left: 4px solid #4CAF50;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.superadmin-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 16px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.superadmin-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+}
+
+.superadmin-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.superadmin-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.superadmin-button.loading {
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.superadmin-spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.superadmin-footer {
+  text-align: center;
+  margin-top: 30px;
+}
+
+.superadmin-back-link {
+  background: none;
+  border: none;
+  color: #667eea;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  padding: 0;
+}
+
+.superadmin-back-link:hover {
+  color: #764ba2;
+  text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+  .superadmin-login-container {
+    padding: 40px 25px;
+  }
+
+  .superadmin-title {
+    font-size: 24px;
+  }
+
+  .superadmin-subtitle {
+    font-size: 13px;
+  }
+
+  .superadmin-lock-icon {
+    font-size: 40px;
+  }
+
+  .superadmin-button {
+    padding: 14px;
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 400px) {
+  .superadmin-login-container {
+    padding: 30px 20px;
+    border-radius: 16px;
+  }
+
+  .superadmin-title {
+    font-size: 22px;
+  }
+
+  .superadmin-form {
+    gap: 16px;
+  }
+
+  .superadmin-input {
+    padding: 12px 14px 12px 40px;
+    font-size: 15px;
+  }
+}
