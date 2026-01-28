@@ -172,7 +172,7 @@ const AnnouncementFeed: React.FC<AnnouncementFeedProps> = ({
                   onClick={() =>
                     setSelectedMedia({
                       type: 'image',
-                      url: announcement.coverImage,
+                      url: announcement.coverImage!,
                       name: 'Cover Image',
                     })
                   }

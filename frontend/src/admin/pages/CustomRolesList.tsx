@@ -1,12 +1,6 @@
 import React, { useState } from 'react';
+import { Role } from '../types/roleTypes';
 import './CustomRolesList.css';
-
-interface Role {
-  id: string;
-  name: string;
-  description: string;
-  permissions: any[];
-}
 
 interface Props {
   roles: Role[];

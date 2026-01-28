@@ -72,8 +72,35 @@ export interface Announcement {
   scheduledFor?: Date;
 }
 
+// Teacher Classroom API interface
+interface ClassroomAPIInterface {
+  createClassroom(data: {
+    name: string;
+    description?: string;
+    subject: string;
+    sections?: string[];
+    metadata?: Record<string, any>;
+  }): Promise<{ success: boolean; data: Classroom; message: string }>;
+  getTeacherClassrooms(): Promise<{ success: boolean; data: Classroom[] }>;
+  getClassroomDetail(classroomId: string): Promise<{ success: boolean; data: Classroom }>;
+  updateClassroom(classroomId: string, data: any): Promise<{ success: boolean; data: Classroom; message: string }>;
+  getAllAnnouncements(classroomId: string): Promise<{ success: boolean; data: Announcement[]; message: string }>;
+  createAnnouncement(classroomId: string, data: any): Promise<{ success: boolean; data: Announcement; message: string }>;
+  updateAnnouncement(announcementId: string, data: any): Promise<{ success: boolean; data: Announcement; message: string }>;
+  deleteAnnouncement(announcementId: string): Promise<{ success: boolean; message: string }>;
+  togglePin(announcementId: string): Promise<{ success: boolean; data: Announcement; message: string }>;
+  likeAnnouncement(announcementId: string): Promise<{ success: boolean; data: Announcement; message: string }>;
+  addComment(announcementId: string, comment: string): Promise<{ success: boolean; data: Announcement; message: string }>;
+  archiveAnnouncement(announcementId: string): Promise<{ success: boolean; data: Announcement; message: string }>;
+  uploadFile(file: File, classroomId: string): Promise<{ success: boolean; data: AnnouncementAttachment; message: string }>;
+  getClassroomStudents(classroomId: string): Promise<{ success: boolean; data: any[]; message: string }>;
+  debugGetTeacherClassrooms(): Promise<{ success: boolean; data: any[]; message: string }>;
+  uploadMaterial(classroomId: string, formData: FormData): Promise<{ success: boolean; data: any; message: string }>;
+  getClassroomEnrollments(classroomId: string): Promise<{ success: boolean; data: any; message: string }>;
+}
+
 // Teacher Classroom API
-export const classroomAPI = {
+export const classroomAPI: ClassroomAPIInterface = {
   // Create classroom
   async createClassroom(data: {
     name: string;

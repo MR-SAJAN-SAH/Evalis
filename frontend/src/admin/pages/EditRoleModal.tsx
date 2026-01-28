@@ -1,20 +1,6 @@
 import React, { useState } from 'react';
+import { Role, Permission } from '../types/roleTypes';
 import './EditRoleModal.css';
-
-interface Permission {
-  id: string;
-  name: string;
-  module: string;
-  action: string;
-}
-
-interface Role {
-  id: string;
-  name: string;
-  description: string;
-  isSystem: boolean;
-  permissions: Permission[];
-}
 
 interface Props {
   role: Role;

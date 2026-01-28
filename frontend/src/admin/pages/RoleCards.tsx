@@ -1,14 +1,6 @@
 import React from 'react';
+import { Role } from '../types/roleTypes';
 import './RoleCards.css';
-
-interface Role {
-  id: string;
-  name: string;
-  description: string;
-  isSystem: boolean;
-  userCount: number;
-  permissions: any[];
-}
 
 interface Props {
   roles: Role[];

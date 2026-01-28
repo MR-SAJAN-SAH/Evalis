@@ -1,19 +1,6 @@
 import React, { useMemo } from 'react';
+import { Role, Permission } from '../types/roleTypes';
 import './PermissionsMatrix.css';
-
-interface Permission {
-  id: string;
-  name: string;
-  module: string;
-  action: string;
-}
-
-interface Role {
-  id: string;
-  name: string;
-  isSystem: boolean;
-  permissions: Permission[];
-}
 
 interface Props {
   roles: Role[];

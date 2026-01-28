@@ -5,16 +5,8 @@ import EditRoleModal from './EditRoleModal';
 import RoleCards from './RoleCards';
 import PermissionsMatrix from './PermissionsMatrix';
 import CustomRolesList from './CustomRolesList';
+import { Role, Permission } from '../types/roleTypes';
 import './RoleManagement.css';
-
-interface Role {
-  id: string;
-  name: string;
-  description: string;
-  isSystem: boolean;
-  userCount: number;
-  permissions: any[];
-}
 
 interface Permission {
   id: string;

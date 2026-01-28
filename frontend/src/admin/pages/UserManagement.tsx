@@ -419,7 +419,7 @@ const UserManagement = () => {
 
       <SendEmailModal
         user={selectedUser && showSendEmailModal ? selectedUser : null}
-        organizationName={organizationName}
+        organizationName={organizationName || 'Unknown Organization'}
         onClose={() => {
           setShowSendEmailModal(false);
           setSelectedUser(null);
