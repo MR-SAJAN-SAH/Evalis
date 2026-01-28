@@ -84,6 +84,7 @@ interface ClassroomAPIInterface {
   getTeacherClassrooms(): Promise<{ success: boolean; data: Classroom[] }>;
   getClassroomDetail(classroomId: string): Promise<{ success: boolean; data: Classroom }>;
   updateClassroom(classroomId: string, data: any): Promise<{ success: boolean; data: Classroom; message: string }>;
+  deleteClassroom(classroomId: string): Promise<{ success: boolean; message: string }>;
   getAllAnnouncements(classroomId: string): Promise<{ success: boolean; data: Announcement[]; message: string }>;
   createAnnouncement(classroomId: string, data: any): Promise<{ success: boolean; data: Announcement; message: string }>;
   updateAnnouncement(announcementId: string, data: any): Promise<{ success: boolean; data: Announcement; message: string }>;
