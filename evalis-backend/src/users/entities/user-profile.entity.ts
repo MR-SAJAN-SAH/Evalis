@@ -25,6 +25,9 @@ export class UserProfile {
   dateOfBirth: Date;
 
   @Column({ nullable: true })
+  fullName: string; // Full name of the user
+
+  @Column({ nullable: true })
   gender: string; // Male, Female, Other
 
   @Column({ nullable: true })

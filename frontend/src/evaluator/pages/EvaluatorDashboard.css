@@ -232,7 +232,7 @@
 /* ==================== SIDEBAR ==================== */
 
 .sidebar {
-  background: white;
+  background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
   border-radius: 12px;
   padding: 28px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
@@ -241,6 +241,8 @@
   top: 120px;
   overflow-y: auto;
   max-height: calc(100vh - 160px);
+  border: 1px solid #f0f0f0;
+  transition: all 0.3s ease;
 }
 
 .sidebar::-webkit-scrollbar {
@@ -252,20 +254,34 @@
 }
 
 .sidebar::-webkit-scrollbar-thumb {
-  background: #ddd;
+  background: rgba(107, 114, 128, 0.3);
   border-radius: 3px;
+  transition: background 0.3s ease;
 }
 
 .sidebar::-webkit-scrollbar-thumb:hover {
-  background: #999;
+  background: rgba(107, 114, 128, 0.6);
 }
 
 .sidebar-section {
   margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+  transition: all 0.3s ease;
 }
 
 .sidebar-section:last-child {
   margin-bottom: 0;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.sidebar-section:hover {
+  background: rgba(102, 126, 234, 0.02);
+  border-radius: 8px;
+  padding: 12px;
+  margin: 0 -12px 32px -12px;
+  padding-bottom: 36px;
 }
 
 .sidebar-section h3 {
@@ -280,6 +296,23 @@
   border-bottom: 2px solid #f0f0f0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.sidebar-section h3::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  transition: width 0.3s ease;
+}
+
+.sidebar-section:hover h3::after {
+  width: 100%;
 }
 
 .sidebar-section h3 svg {
@@ -379,8 +412,13 @@
 }
 
 .exams-list::-webkit-scrollbar-thumb {
-  background: #ddd;
+  background: rgba(107, 114, 128, 0.3);
   border-radius: 2px;
+  transition: background 0.3s ease;
+}
+
+.exams-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 114, 128, 0.6);
 }
 
 .exam-item {
@@ -389,19 +427,35 @@
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.3s ease;
-  background: white;
+  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+  position: relative;
+  overflow: hidden;
 }
 
 .exam-item:hover {
   border-color: #667eea;
-  background: #f8f9ff;
+  background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
   transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
 }
 
 .exam-item.active {
   border-color: #667eea;
+  border-width: 2px;
   background: linear-gradient(135deg, #f0f4ff 0%, #f5f7ff 100%);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.2);
+  position: relative;
+}
+
+.exam-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+  border-radius: 10px 0 0 10px;
 }
 
 .exam-info h4 {
@@ -1025,7 +1079,7 @@
 /* ==================== EVALUATION SIDEBAR ==================== */
 
 .evaluation-sidebar {
-  background: white;
+  background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
   border-radius: 12px;
   padding: 28px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
@@ -1034,15 +1088,26 @@
   top: 120px;
   overflow-y: auto;
   max-height: calc(100vh - 160px);
+  border: 1px solid #f0f0f0;
+  transition: all 0.3s ease;
 }
 
 .evaluation-sidebar::-webkit-scrollbar {
   width: 6px;
 }
 
+.evaluation-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
 .evaluation-sidebar::-webkit-scrollbar-thumb {
-  background: #ddd;
+  background: rgba(107, 114, 128, 0.3);
   border-radius: 3px;
+  transition: background 0.3s ease;
+}
+
+.evaluation-sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 114, 128, 0.6);
 }
 
 .evaluation-panel {
@@ -2034,3 +2099,330 @@
     padding: 20px;
   }
 }
+
+/* ==================== VALIDATION STYLES ==================== */
+
+.marks-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.marks-label-row label {
+  display: block;
+  font-weight: 700;
+  color: #1a1a1a;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+.precision-hint {
+  font-size: 11px;
+  color: #888;
+  font-weight: 600;
+  background: #f5f5f5;
+  padding: 4px 8px;
+  border-radius: 4px;
+  text-transform: capitalize;
+}
+
+.marks-input.error {
+  border-color: #ff6b6b;
+  background-color: #fff5f5;
+  color: #ff6b6b;
+}
+
+.marks-input.error:focus {
+  box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+}
+
+.marks-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  margin-top: 10px;
+  background-color: #ffe0e0;
+  border: 1px solid #ff6b6b;
+  border-radius: 6px;
+  color: #c53030;
+  font-size: 12px;
+  font-weight: 600;
+  animation: slideDown 0.3s ease;
+}
+
+.error-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+/* ==================== CONFIRMATION MODAL ==================== */
+
+.confirmation-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+.confirmation-modal {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 450px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+
+.confirmation-modal .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 2px solid #f5f5f5;
+  background: linear-gradient(135deg, #fff5f5 0%, #ffe0e0 100%);
+}
+
+.confirmation-modal .modal-header h2 {
+  margin: 0;
+  font-size: 18px;
+  color: #c53030;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.confirmation-modal .close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #999;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.confirmation-modal .close-btn:hover {
+  color: #ff6b6b;
+  background: #f5f5f5;
+  border-radius: 6px;
+}
+
+.confirmation-modal .modal-body {
+  padding: 24px;
+}
+
+.warning-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #fff5f5;
+  border-left: 3px solid #ff6b6b;
+  border-radius: 6px;
+}
+
+.warning-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.warning-message p {
+  margin: 0;
+  color: #1a1a1a;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.unevaluated-list {
+  background: #f9f9f9;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 16px 0;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.unevaluated-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-left: 2px solid #ff6b6b;
+  font-size: 13px;
+  color: #555;
+  margin-bottom: 6px;
+}
+
+.unevaluated-item:last-child {
+  margin-bottom: 0;
+}
+
+.status-indicator {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.modal-info {
+  background: #e8f4f8;
+  border-left: 3px solid #3498db;
+  padding: 12px;
+  border-radius: 6px;
+  margin: 16px 0 0 0;
+}
+
+.modal-info strong {
+  display: block;
+  color: #2c3e50;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.modal-info p {
+  margin: 0;
+  color: #555;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.confirmation-modal .modal-footer {
+  display: flex;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid #f0f0f0;
+  background: #fafafa;
+}
+
+.confirmation-modal .modal-footer button {
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-cancel {
+  background: #f0f0f0;
+  color: #555;
+  border: 1px solid #ddd;
+}
+
+.btn-cancel:hover {
+  background: #e8e8e8;
+  border-color: #bbb;
+}
+
+.btn-proceed {
+  background: linear-gradient(135deg, #ff6b6b 0%, #c53030 100%);
+  color: white;
+}
+
+.btn-proceed:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.3);
+}
+
+.btn-proceed:active {
+  transform: translateY(0);
+}
+
+/* Animation keyframes */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .confirmation-modal {
+    width: 95%;
+    max-height: 90vh;
+  }
+
+  .confirmation-modal .modal-header {
+    padding: 20px;
+  }
+
+  .confirmation-modal .modal-header h2 {
+    font-size: 16px;
+  }
+
+  .confirmation-modal .modal-body {
+    padding: 16px;
+  }
+
+  .confirmation-modal .modal-footer {
+    flex-direction: column;
+    padding: 12px 16px;
+  }
+
+  .confirmation-modal .modal-footer button {
+    width: 100%;
+  }
+
+  .unevaluated-list {
+    max-height: 250px;
+  }
+
+  .marks-label-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .precision-hint {
+    align-self: flex-start;
+  }
+}
+

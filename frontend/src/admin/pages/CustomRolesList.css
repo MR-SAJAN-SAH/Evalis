@@ -1,0 +1,195 @@
+.custom-roles-list {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.crl-header {
+  margin-bottom: 24px;
+}
+
+.crl-header h2 {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.crl-info {
+  margin: 0;
+  color: #7f8c8d;
+  font-size: 14px;
+}
+
+.roles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.role-item {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 12px;
+  padding: 20px;
+  border: 2px solid #ecf0f1;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.role-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #3498db, #2980b9);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.role-item:hover {
+  transform: translateY(-6px);
+  border-color: #3498db;
+  box-shadow: 0 12px 24px rgba(52, 152, 219, 0.15);
+}
+
+.role-item:hover::before {
+  opacity: 1;
+}
+
+.ri-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.ri-icon {
+  font-size: 24px;
+}
+
+.ri-header h4 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #2c3e50;
+  flex: 1;
+}
+
+.ri-description {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  color: #7f8c8d;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ri-permissions {
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  background: rgba(52, 152, 219, 0.08);
+  border-radius: 6px;
+}
+
+.perm-count {
+  font-size: 12px;
+  color: #3498db;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.ri-actions {
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: all 0.3s ease;
+}
+
+.ri-actions.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.btn-edit,
+.btn-delete {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.btn-edit {
+  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+  color: white;
+}
+
+.btn-edit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.btn-delete {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: white;
+}
+
+.btn-delete:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ecf0f1 100%);
+  border-radius: 12px;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.empty-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  animation: float 3s ease-in-out infinite;
+}
+
+.empty-state h3 {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.empty-state p {
+  margin: 0;
+  color: #7f8c8d;
+  font-size: 14px;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@media (max-width: 768px) {
+  .roles-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { FaSearch, FaPlus, FaEdit, FaTrash, FaChevronLeft, FaChevronRight, FaEye } from 'react-icons/fa';
+import { FaSearch, FaPlus, FaEdit, FaTrash, FaChevronLeft, FaChevronRight, FaEye, FaDownload, FaEnvelope } from 'react-icons/fa';
 import UserDetailsModal from '../components/UserDetailsModal';
+import GetUserDetailsModal from '../components/GetUserDetailsModal';
+import { SendEmailModal } from '../components/SendEmailModal';
 
 interface User {
   id: string;
@@ -23,8 +25,10 @@ const UserManagement = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showGetDetailsModal, setShowGetDetailsModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [formData, setFormData] = useState({ name: '', email: '', role: '', status: 'Active' });
+  const [showSendEmailModal, setShowSendEmailModal] = useState(false);
   const itemsPerPage = 10;
 
   useEffect(() => {
@@ -34,10 +38,24 @@ const UserManagement = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
+      console.log('Fetching users for organization:', organizationName);
       const response = await fetch(`/api/auth/users?organizationName=${organizationName}`);
       const data = await response.json();
+      console.log('Raw response from backend:', data);
+      
       if (response.ok) {
-        setUsers(data.users || []);
+        const users = (data.users || []).map((user: any, index: number) => {
+          const mappedUser = {
+            ...user,
+            id: user.id || user._id || `user-${index}`, // Ensure id is always present
+          };
+          console.log(`Mapped user ${index}:`, mappedUser);
+          return mappedUser;
+        });
+        console.log('Final users array:', users);
+        setUsers(users);
+      } else {
+        console.error('Error fetching users:', data);
       }
     } catch (err) {
       console.error('Error fetching users:', err);
@@ -65,6 +83,28 @@ const UserManagement = () => {
     }
   };
 
+  const handleSendEmail = async (emailData: any) => {
+    try {
+      const response = await fetch('/api/email/send-to-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(emailData),
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to send email');
+      }
+
+      alert('Email sent successfully!');
+      setShowSendEmailModal(false);
+    } catch (error: any) {
+      throw new Error(error.message || 'Failed to send email');
+    }
+  };
+
   const handleAddUser = () => {
     if (formData.name && formData.email && formData.role) {
       const newUser: User = {
@@ -85,9 +125,14 @@ const UserManagement = () => {
     <div className="user-management">
       <div className="page-header">
         <h1>User Management</h1>
-        <button type="button" className="btn-primary" onClick={() => navigate('/admin/users/add')}>
-          <FaPlus /> Add New User
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button type="button" className="btn-primary" onClick={() => setShowGetDetailsModal(true)}>
+            <FaDownload /> Get Details Export
+          </button>
+          <button type="button" className="btn-primary" onClick={() => navigate('/admin/users/add')}>
+            <FaPlus /> Add New User
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -160,11 +205,28 @@ const UserManagement = () => {
                   className="btn-icon details" 
                   title="View Details"
                   onClick={() => {
+                    console.log('Selected user for details:', user);
+                    if (!user.id) {
+                      console.error('User ID is missing!', user);
+                      alert('Error: User ID is missing. Cannot open details.');
+                      return;
+                    }
                     setSelectedUser(user);
                     setShowDetailsModal(true);
                   }}
                 >
                   <FaEye />
+                </button>
+                <button
+                  className="btn-icon send-email"
+                  title="Send Email"
+                  onClick={() => {
+                    setSelectedUser(user);
+                    setShowSendEmailModal(true);
+                  }}
+                  style={{ color: '#17a2b8' }}
+                >
+                  <FaEnvelope />
                 </button>
                 <button className="btn-icon edit" title="Edit">
                   <FaEdit />
@@ -222,6 +284,14 @@ const UserManagement = () => {
             setShowDetailsModal(false);
             setSelectedUser(null);
           }}
+        />
+      )}
+
+      {/* Get Details Export Modal */}
+      {showGetDetailsModal && organizationName && (
+        <GetUserDetailsModal
+          organizationId={organizationName}
+          onClose={() => setShowGetDetailsModal(false)}
         />
       )}
 
@@ -330,6 +400,29 @@ const UserManagement = () => {
           </div>
         </div>
       )}
+
+      {showDetailsModal && selectedUser && (
+        <UserDetailsModal 
+          userId={selectedUser.id}
+          userName={selectedUser.name}
+          userEmail={selectedUser.email}
+          onClose={() => setShowDetailsModal(false)} 
+        />
+      )}
+
+      {showGetDetailsModal && (
+        <GetUserDetailsModal onClose={() => setShowGetDetailsModal(false)} />
+      )}
+
+      <SendEmailModal
+        user={selectedUser && showSendEmailModal ? selectedUser : null}
+        organizationName={organizationName}
+        onClose={() => {
+          setShowSendEmailModal(false);
+          setSelectedUser(null);
+        }}
+        onSend={handleSendEmail}
+      />
     </div>
   );
 };

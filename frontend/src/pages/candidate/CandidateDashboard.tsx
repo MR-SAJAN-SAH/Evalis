@@ -3,12 +3,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import AdvancedClassroom from './AdvancedClassroom';
+import ChatPage from '../../components/Chat/ChatPage';
+import NotificationCenter from '../../components/NotificationCenter';
 import { 
   FaSignOutAlt, FaBook, FaAward, FaBell, FaCalendar, FaClock, FaCheckCircle, 
   FaChartLine, FaFilter, FaSearch, FaDownload, FaUser, FaCog, FaQuestionCircle,
   FaPlayCircle, FaLock, FaEye, FaArrowRight, FaTrophy, FaFire, FaLightbulb, FaCertificate, FaClipboardList,
   FaGraduationCap, FaStar, FaCodeBranch, FaCheckDouble, FaTimesCircle, FaSpinner, FaHistory, FaUserGraduate, FaChalkboard,
-  FaComments, FaUpload, FaDownload as FaDownloadFile, FaPaperclip, FaPlus, FaChevronRight
+  FaComments, FaUpload, FaDownload as FaDownloadFile, FaPaperclip, FaPlus, FaChevronRight, FaEnvelope
 } from 'react-icons/fa';
 import './CandidateDashboard.css';
 
@@ -35,6 +37,7 @@ interface Exam {
   score?: number;
   completedAt?: string;
   createdAt: string;
+  isSubmitted?: boolean; // Has candidate already submitted this exam
 }
 
 interface Notification {
@@ -58,7 +61,7 @@ const CandidateDashboard: React.FC = () => {
     const segments = pathname.split('/');
     const lastSegment = segments[segments.length - 1];
     
-    const validTabs = ['dashboard', 'exams', 'schedule', 'results', 'classroom', 'history', 'settings'];
+    const validTabs = ['dashboard', 'exams', 'schedule', 'results', 'classroom', 'history', 'chat', 'settings'];
     return validTabs.includes(lastSegment) ? lastSegment : 'dashboard';
   };
   
@@ -69,7 +72,17 @@ const CandidateDashboard: React.FC = () => {
   const [filterLevel, setFilterLevel] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [userId, setUserId] = useState(sessionStorage.getItem('userId') || '');
+  const getUserProfileImage = () => {
+    const uid = sessionStorage.getItem('userId');
+    if (uid) {
+      return localStorage.getItem(`candidateProfileImageUrl_${uid}`) || '';
+    }
+    return '';
+  };
+  const [profileImageUrl, setProfileImageUrl] = useState(getUserProfileImage());
   const [stats, setStats] = useState({
     totalExams: 0,
     completedExams: 0,
@@ -91,7 +104,7 @@ const CandidateDashboard: React.FC = () => {
     }
   }, [location.pathname]);
 
-  // Fetch exams from backend
+  // Fetch exams and submissions from backend
   useEffect(() => {
     const fetchExams = async () => {
       try {
@@ -99,7 +112,8 @@ const CandidateDashboard: React.FC = () => {
         console.log('📡 [CANDIDATE] Fetching exams...');
         console.log('🔐 Token available:', !!token);
         
-        const response = await fetch('/api/exams', {
+        // Fetch published exams
+        const examsResponse = await fetch('/api/exams', {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -107,39 +121,67 @@ const CandidateDashboard: React.FC = () => {
           },
         });
 
-        console.log('📊 [CANDIDATE] API Response Status:', response.status);
+        console.log('📊 [CANDIDATE] API Response Status:', examsResponse.status);
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('❌ [CANDIDATE] API Error:', response.status, errorText);
-          throw new Error(`API Error: ${response.status}`);
+        if (!examsResponse.ok) {
+          const errorText = await examsResponse.text();
+          console.error('❌ [CANDIDATE] API Error:', examsResponse.status, errorText);
+          throw new Error(`API Error: ${examsResponse.status}`);
         }
 
-        const data = await response.json();
-        console.log('✅ [CANDIDATE] Raw API Response:', data);
+        const examsData = await examsResponse.json();
+        console.log('✅ [CANDIDATE] Raw API Response:', examsData);
         
         // Filter only published exams for candidates
         let publishedExams: Exam[] = [];
         
-        if (Array.isArray(data)) {
-          publishedExams = data.filter((exam: any) => exam.status === 'PUBLISHED');
-        } else if (data?.data && Array.isArray(data.data)) {
-          publishedExams = data.data.filter((exam: any) => exam.status === 'PUBLISHED');
-        } else if (data?.exams && Array.isArray(data.exams)) {
-          publishedExams = data.exams.filter((exam: any) => exam.status === 'PUBLISHED');
+        if (Array.isArray(examsData)) {
+          publishedExams = examsData.filter((exam: any) => exam.status === 'PUBLISHED');
+        } else if (examsData?.data && Array.isArray(examsData.data)) {
+          publishedExams = examsData.data.filter((exam: any) => exam.status === 'PUBLISHED');
+        } else if (examsData?.exams && Array.isArray(examsData.exams)) {
+          publishedExams = examsData.exams.filter((exam: any) => exam.status === 'PUBLISHED');
         }
         
         console.log('📚 [CANDIDATE] Published exams found:', publishedExams.length);
         console.log('📋 [CANDIDATE] Exams:', publishedExams);
         
-        setExams(publishedExams);
+        // Fetch submitted exams with scores
+        let submittedExams: Exam[] = [];
+        try {
+          const submissionsResponse = await fetch('/api/exams/candidate/submissions', {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (submissionsResponse.ok) {
+            const submissionsData = await submissionsResponse.json();
+            console.log('✅ [CANDIDATE] Submissions received:', submissionsData);
+            submittedExams = Array.isArray(submissionsData) ? submissionsData : submissionsData.data || [];
+          } else {
+            console.warn('⚠️ [CANDIDATE] Could not fetch submissions:', submissionsResponse.status);
+          }
+        } catch (err) {
+          console.warn('⚠️ [CANDIDATE] Error fetching submissions:', err);
+        }
+
+        // Merge exams and mark as submitted
+        const mergedExams = publishedExams.map(exam => {
+          const submitted = submittedExams.find(s => s.id === exam.id);
+          return submitted ? submitted : { ...exam, isSubmitted: false };
+        });
+
+        setExams(mergedExams);
         setError(null);
         
         // Update stats
-        updateStats(publishedExams);
-        updateCategoryExams(publishedExams);
+        updateStats(mergedExams);
+        updateCategoryExams(mergedExams);
         
-        if (publishedExams.length === 0) {
+        if (mergedExams.length === 0) {
           console.warn('⚠️ [CANDIDATE] No published exams available');
         }
       } catch (err: any) {
@@ -168,17 +210,46 @@ const CandidateDashboard: React.FC = () => {
     return () => clearInterval(interval);
   }, [upcomingExams]);
 
+  // Fetch unread notification count
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const response = await fetch('/api/notifications/unread-count', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setUnreadCount(data.unreadCount || 0);
+        }
+      } catch (err) {
+        console.error('Error fetching notification count:', err);
+      }
+    };
+
+    if (token) {
+      fetchUnreadCount();
+      // Fetch notification count every 30 seconds
+      const interval = setInterval(fetchUnreadCount, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [token]);
+
   const updateStats = (exams: Exam[]) => {
     const now = new Date();
-    const upcoming = exams.filter(e => new Date(e.startTime) > now);
-    const completed = exams.filter(e => e.completedAt);
+    const submitted = exams.filter(e => e.isSubmitted === true);
+    const upcoming = exams.filter(e => new Date(e.startTime) > now && e.isSubmitted !== true);
 
     setStats({
       totalExams: exams.length,
-      completedExams: completed.length,
+      completedExams: submitted.length,
       pendingExams: upcoming.length,
-      averageScore: completed.length > 0 
-        ? Math.round(completed.reduce((sum, e) => sum + (e.score || 0), 0) / completed.length)
+      averageScore: submitted.length > 0 
+        ? Math.round(submitted.reduce((sum, e) => sum + (e.score || 0), 0) / submitted.length)
         : 0,
       rank: 1,
       percentile: 85
@@ -187,11 +258,11 @@ const CandidateDashboard: React.FC = () => {
 
   const updateCategoryExams = (allExams: Exam[]) => {
     const now = new Date();
-    const upcoming = allExams.filter(e => new Date(e.startTime) > now);
-    const completed = allExams.filter(e => e.completedAt);
+    const upcoming = allExams.filter(e => new Date(e.startTime) > now && e.isSubmitted !== true);
+    const submitted = allExams.filter(e => e.isSubmitted === true);
     
     setUpcomingExams(upcoming.slice(0, 5));
-    setCompletedExams(completed.slice(0, 5));
+    setCompletedExams(submitted.slice(0, 5));
   };
 
   const updateCountdowns = () => {
@@ -243,7 +314,8 @@ const CandidateDashboard: React.FC = () => {
                          exam.subject.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesLevel = filterLevel === 'all' || exam.level === filterLevel;
     const matchesStatus = filterStatus === 'all' || exam.status === filterStatus;
-    return matchesSearch && matchesLevel && matchesStatus;
+    const isNotSubmitted = exam.isSubmitted !== true; // Exclude submitted exams from available list
+    return matchesSearch && matchesLevel && matchesStatus && isNotSubmitted;
   });
 
   const getLevelColor = (level: string) => {
@@ -334,6 +406,15 @@ const CandidateDashboard: React.FC = () => {
             <FaHistory /> History
           </button>
           <button 
+            className={`nav-item ${activeTab === 'chat' ? 'active' : ''}`}
+            onClick={() => {
+              setActiveTab('chat');
+              navigate('/candidate/dashboard/chat');
+            }}
+          >
+            <FaEnvelope /> Chat
+          </button>
+          <button 
             className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`}
             onClick={() => {
               setActiveTab('settings');
@@ -346,7 +427,49 @@ const CandidateDashboard: React.FC = () => {
 
         <div className="sidebar-footer">
           <div className="user-card">
-            <FaUser className="user-icon" />
+            <div className="user-avatar" style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '8px',
+              overflow: 'hidden',
+              backgroundColor: '#667eea',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              position: 'relative'
+            }}>
+              {profileImageUrl ? (
+                <img 
+                  src={profileImageUrl} 
+                  alt="Profile" 
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    objectPosition: 'center',
+                    display: 'block'
+                  }}
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              ) : null}
+              <div style={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '18px',
+                fontWeight: 'bold',
+                color: 'white',
+                background: profileImageUrl ? 'none' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                position: profileImageUrl ? 'absolute' : 'relative'
+              }}>
+                {!profileImageUrl && (userEmail?.charAt(0).toUpperCase() || 'C')}
+              </div>
+            </div>
             <div>
               <p className="user-email">{userEmail}</p>
               <p className="user-org">{organizationName}</p>
@@ -373,11 +496,17 @@ const CandidateDashboard: React.FC = () => {
             <div className="header-actions">
               <div className="notification-icon" onClick={() => setShowNotifications(!showNotifications)}>
                 <FaBell />
-                {notifications.length > 0 && <span className="notification-badge">{notifications.length}</span>}
+                {unreadCount > 0 && <span className="notification-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>}
               </div>
             </div>
           </div>
         </header>
+
+        {/* Notification Center Dropdown */}
+        <NotificationCenter 
+          isOpen={showNotifications} 
+          onClose={() => setShowNotifications(false)}
+        />
 
         {/* Content Sections */}
         <section className="candidate-content">
@@ -406,7 +535,7 @@ const CandidateDashboard: React.FC = () => {
                     <p>Total Exams</p>
                   </div>
                 </div>
-                <div className="stat-box">
+                <div className="stat-box clickable" onClick={() => setActiveTab('results')}>
                   <div className="stat-icon" style={{ color: '#10b981' }}>
                     <FaCheckCircle />
                   </div>
@@ -609,12 +738,22 @@ const CandidateDashboard: React.FC = () => {
                         {exam.negativeMarking && <span className="req">⚠️ Negative Marking</span>}
                       </div>
 
-                      <button 
-                        className="card-btn"
-                        onClick={() => handleStartExam(exam.id)}
-                      >
-                        <FaPlayCircle /> Start Exam
-                      </button>
+                      {exam.isSubmitted ? (
+                        <button 
+                          className="card-btn submitted"
+                          disabled
+                          title="You have already submitted this exam"
+                        >
+                          <FaCheckCircle /> Already Submitted
+                        </button>
+                      ) : (
+                        <button 
+                          className="card-btn"
+                          onClick={() => handleStartExam(exam.id)}
+                        >
+                          <FaPlayCircle /> Start Exam
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -673,12 +812,14 @@ const CandidateDashboard: React.FC = () => {
             <div className="results-tab">
               {completedExams.length > 0 ? (
                 <div className="results-grid">
-                  {completedExams.map(exam => (
+                  {completedExams.map(exam => {
+                    const isPassed = (exam.score || 0) >= exam.passingScore;
+                    return (
                     <div key={exam.id} className="result-card">
                       <div className="result-header">
                         <h3>{exam.name}</h3>
-                        <span className={`status-badge ${(exam.score || 0) >= 70 ? 'passed' : 'failed'}`}>
-                          {(exam.score || 0) >= 70 ? 'PASSED' : 'FAILED'}
+                        <span className={`status-badge ${isPassed ? 'passed' : 'failed'}`}>
+                          {isPassed ? 'PASSED' : 'FAILED'}
                         </span>
                       </div>
                       <div className="result-score">
@@ -693,12 +834,8 @@ const CandidateDashboard: React.FC = () => {
                       </div>
                       <div className="result-details">
                         <div className="detail-item">
-                          <strong>Date:</strong>
-                          <span>{exam.completedAt ? new Date(exam.completedAt).toLocaleDateString() : 'N/A'}</span>
-                        </div>
-                        <div className="detail-item">
-                          <strong>Duration:</strong>
-                          <span>{formatExamDuration(exam.durationMinutes)}</span>
+                          <span><strong>Date:</strong> {exam.completedAt ? new Date(exam.completedAt).toLocaleDateString() : 'N/A'}</span>
+                          <span><strong>Duration:</strong> {formatExamDuration(exam.durationMinutes)}</span>
                         </div>
                       </div>
                       <button 
@@ -708,7 +845,8 @@ const CandidateDashboard: React.FC = () => {
                         View Detailed Report
                       </button>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="empty-state">
@@ -731,6 +869,11 @@ const CandidateDashboard: React.FC = () => {
             <AdvancedClassroom />
           )}
 
+          {/* Chat Tab */}
+          {activeTab === 'chat' && (
+            <ChatPage />
+          )}
+
           {/* Settings Tab */}
           {activeTab === 'settings' && (
             <div className="settings-tab">
@@ -744,6 +887,110 @@ const CandidateDashboard: React.FC = () => {
                   <label>Organization</label>
                   <p className="setting-value">{organizationName}</p>
                 </div>
+              </div>
+              <div className="settings-card">
+                <h3>Profile Picture</h3>
+                <div className="setting-item">
+                  <label>Profile Image URL</label>
+                  <input
+                    type="url"
+                    placeholder="https://example.com/profile-image.jpg"
+                    value={profileImageUrl}
+                    onChange={(e) => setProfileImageUrl(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '10px',
+                      border: '1px solid #e0e6ed',
+                      borderRadius: '8px',
+                      boxSizing: 'border-box',
+                      marginTop: '5px'
+                    }}
+                  />
+                  <small style={{ color: '#999', marginTop: '5px', display: 'block' }}>
+                    Enter the URL of your profile picture
+                  </small>
+                </div>
+                {profileImageUrl && (
+                  <div className="setting-item">
+                    <label>Preview</label>
+                    <div style={{
+                      display: 'inline-block',
+                      width: '100px',
+                      height: '100px',
+                      borderRadius: '8px',
+                      border: '2px solid #e0e6ed',
+                      overflow: 'hidden',
+                      backgroundColor: '#ffffff',
+                      marginTop: '10px',
+                      flexShrink: 0
+                    }}>
+                      <img 
+                        src={profileImageUrl} 
+                        alt="Profile Preview" 
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          objectPosition: 'center',
+                          display: 'block'
+                        }}
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+                <button
+                  onClick={() => {
+                    if (profileImageUrl) {
+                      const candidateUserId = sessionStorage.getItem('userId');
+                      // Save to user-specific localStorage key
+                      if (candidateUserId) {
+                        localStorage.setItem(`candidateProfileImageUrl_${candidateUserId}`, profileImageUrl);
+                      }
+                      const accessToken = sessionStorage.getItem('accessToken');
+                      
+                      if (candidateUserId && accessToken) {
+                        fetch(`/api/auth/user/${candidateUserId}/profile`, {
+                          method: 'PUT',
+                          headers: {
+                            'Authorization': `Bearer ${accessToken}`,
+                            'Content-Type': 'application/json'
+                          },
+                          body: JSON.stringify({
+                            profileUrl: profileImageUrl
+                          })
+                        })
+                          .then(res => {
+                            if (res.ok) {
+                              alert('✅ Profile image saved successfully!');
+                              window.location.reload();
+                            } else {
+                              alert('✅ Profile image saved locally!');
+                            }
+                          })
+                          .catch(() => {
+                            alert('✅ Profile image saved locally!');
+                          });
+                      } else {
+                        alert('✅ Profile image saved locally!');
+                      }
+                    }
+                  }}
+                  style={{
+                    marginTop: '15px',
+                    padding: '10px 20px',
+                    background: '#667eea',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontWeight: '600'
+                  }}
+                >
+                  Save Profile Image
+                </button>
               </div>
               <div className="settings-card">
                 <h3>Preferences</h3>

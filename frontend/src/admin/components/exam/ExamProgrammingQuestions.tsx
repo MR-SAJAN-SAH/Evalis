@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { FaPlus, FaTrash, FaEdit, FaCode } from 'react-icons/fa';
+import { FaPlus, FaTrash, FaEdit, FaCode, FaRobot } from 'react-icons/fa';
 import ProgrammingQuestionEditor from './ProgrammingQuestionEditor';
+import AIQuestionGenerator from './AIQuestionGenerator';
 
 interface ExamProgrammingQuestionsProps {
   examData: any;
@@ -16,6 +17,7 @@ const ExamProgrammingQuestions: React.FC<ExamProgrammingQuestionsProps> = ({
   onDeleteProgrammingQuestion,
 }) => {
   const [showEditor, setShowEditor] = useState(false);
+  const [showAIGenerator, setShowAIGenerator] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<any>(null);
 
   const handleSaveQuestion = (question: any) => {
@@ -36,6 +38,14 @@ const ExamProgrammingQuestions: React.FC<ExamProgrammingQuestionsProps> = ({
   const handleCancelEdit = () => {
     setShowEditor(false);
     setEditingQuestion(null);
+  };
+
+  const handleGenerateQuestionsWithAI = (aiQuestions: any[]) => {
+    // Add all AI-generated questions to the exam
+    aiQuestions.forEach((question) => {
+      onAddProgrammingQuestion(question);
+    });
+    setShowAIGenerator(false);
   };
 
   return (
@@ -142,13 +152,32 @@ const ExamProgrammingQuestions: React.FC<ExamProgrammingQuestionsProps> = ({
             </p>
           </div>
 
-          <button
-            className="btn btn-primary"
-            onClick={() => setShowEditor(true)}
-            style={{ marginTop: '20px' }}
-          >
-            <FaPlus /> Add Question
-          </button>
+          <div className="button-group" style={{ marginTop: '20px', display: 'flex', gap: '10px' }}>
+            <button
+              className="btn btn-primary"
+              onClick={() => setShowEditor(true)}
+            >
+              <FaPlus /> Add Question
+            </button>
+            <button
+              className="btn btn-secondary"
+              onClick={() => setShowAIGenerator(true)}
+              style={{
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+              }}
+            >
+              <FaRobot /> Generate with AI
+            </button>
+          </div>
+
+          {showAIGenerator && (
+            <AIQuestionGenerator
+              examData={examData}
+              onGenerateQuestions={handleGenerateQuestionsWithAI}
+              onClose={() => setShowAIGenerator(false)}
+            />
+          )}
         </>
       )}
     </div>

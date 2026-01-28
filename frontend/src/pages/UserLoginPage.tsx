@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
@@ -15,7 +15,25 @@ import './LoginPage.css';
 
 const UserLoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, isAuthenticated, role } = useAuth();
+
+  // Redirect to dashboard if already logged in
+  useEffect(() => {
+    if (isAuthenticated) {
+      // Redirect based on role
+      if (role === 'evaluator') {
+        navigate('/evaluator/dashboard');
+      } else if (role === 'candidate') {
+        navigate('/candidate/dashboard');
+      } else if (role === 'teacher') {
+        navigate('/teacher/dashboard');
+      } else if (role === 'exam_controller') {
+        navigate('/exam-controller/dashboard');
+      } else {
+        navigate('/');
+      }
+    }
+  }, [isAuthenticated, role, navigate]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);

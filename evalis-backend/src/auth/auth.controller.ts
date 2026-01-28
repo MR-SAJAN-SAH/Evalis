@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Param, Put, HttpCode, HttpStatus, BadRequestException, Query } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, Put, HttpCode, HttpStatus, BadRequestException, InternalServerErrorException, Query } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
   CreateAdminDto,
@@ -68,13 +68,56 @@ export class AuthController {
 
   @Get('user/:userId')
   async getUserProfile(@Param('userId') userId: string) {
-    return this.authService.getUserProfile(userId);
+    try {
+      if (!userId || userId.trim() === '') {
+        throw new BadRequestException('User ID is required');
+      }
+      return await this.authService.getUserProfile(userId);
+    } catch (error: any) {
+      console.error('Error in getUserProfile controller:', error);
+      throw error;
+    }
   }
 
   @Put('user/:userId/profile')
   @HttpCode(HttpStatus.OK)
   async updateUserProfile(@Param('userId') userId: string, @Body() profileData: any) {
-    return this.authService.updateUserProfile(userId, profileData);
+    try {
+      if (!userId || userId.trim() === '') {
+        throw new BadRequestException('User ID is required');
+      }
+      return await this.authService.updateUserProfile(userId, profileData);
+    } catch (error: any) {
+      console.error('Error in updateUserProfile controller:', error);
+      throw error;
+    }
+  }
+
+  @Get('admin/:adminId/profile')
+  async getAdminProfile(@Param('adminId') adminId: string) {
+    try {
+      if (!adminId || adminId.trim() === '') {
+        throw new BadRequestException('Admin ID is required');
+      }
+      return await this.authService.getAdminProfile(adminId);
+    } catch (error: any) {
+      console.error('Error in getAdminProfile controller:', error);
+      throw error;
+    }
+  }
+
+  @Put('admin/:adminId/profile')
+  @HttpCode(HttpStatus.OK)
+  async updateAdminProfile(@Param('adminId') adminId: string, @Body() profileData: any) {
+    try {
+      if (!adminId || adminId.trim() === '') {
+        throw new BadRequestException('Admin ID is required');
+      }
+      return await this.authService.updateAdminProfile(adminId, profileData);
+    } catch (error: any) {
+      console.error('Error in updateAdminProfile controller:', error);
+      throw error;
+    }
   }
 
   @Get('superadmin/admins')

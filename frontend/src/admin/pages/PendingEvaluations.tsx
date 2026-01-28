@@ -1,16 +1,20 @@
 import React, { useState } from 'react';
-import { FaFilter, FaSync, FaEye, FaCheck, FaTimes } from 'react-icons/fa';
+import { FaFilter, FaSync, FaEye, FaCheck, FaTimes, FaUpload } from 'react-icons/fa';
+import UpdateEvaluationMappingModal from '../components/UpdateEvaluationMappingModal';
 
 const PendingEvaluations = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [showMappingModal, setShowMappingModal] = useState(false);
+  const [selectedExamId, setSelectedExamId] = useState<string | null>(null);
   const itemsPerPage = 10;
 
   const pendingEvaluations = [
     {
       id: 1,
       examName: 'Java Programming',
+      examId: 'exam-001',
       candidateName: 'Rajesh Kumar',
       candidateEmail: 'rajesh@example.com',
       submittedDate: '2024-01-15',
@@ -21,6 +25,7 @@ const PendingEvaluations = () => {
     {
       id: 2,
       examName: 'Data Structures',
+      examId: 'exam-002',
       candidateName: 'Priya Singh',
       candidateEmail: 'priya@example.com',
       submittedDate: '2024-01-14',
@@ -31,6 +36,7 @@ const PendingEvaluations = () => {
     {
       id: 3,
       examName: 'Web Development',
+      examId: 'exam-003',
       candidateName: 'Anil Patel',
       candidateEmail: 'anil@example.com',
       submittedDate: '2024-01-13',
@@ -41,6 +47,7 @@ const PendingEvaluations = () => {
     {
       id: 4,
       examName: 'Database Design',
+      examId: 'exam-004',
       candidateName: 'Sneha Gupta',
       candidateEmail: 'sneha@example.com',
       submittedDate: '2024-01-12',
@@ -51,6 +58,7 @@ const PendingEvaluations = () => {
     {
       id: 5,
       examName: 'System Design',
+      examId: 'exam-005',
       candidateName: 'Vikram Reddy',
       candidateEmail: 'vikram@example.com',
       submittedDate: '2024-01-11',
@@ -70,11 +78,24 @@ const PendingEvaluations = () => {
   const paginatedData = filteredEvaluations.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
   const totalPages = Math.ceil(filteredEvaluations.length / itemsPerPage);
 
+  const handleOpenMappingModal = (examId: string) => {
+    setSelectedExamId(examId);
+    setShowMappingModal(true);
+  };
+
   return (
     <div className="pending-evaluations">
       <div className="page-header">
-        <h1>Pending Evaluations</h1>
-        <p className="subtitle">Review and manage pending candidate evaluations</p>
+        <div>
+          <h1>Pending Evaluations</h1>
+          <p className="subtitle">Review and manage pending candidate evaluations</p>
+        </div>
+        <button 
+          className="btn-primary"
+          onClick={() => handleOpenMappingModal(selectedExamId || 'exam-001')}
+        >
+          <FaUpload /> Update Evaluation Mapping
+        </button>
       </div>
 
       <div className="management-filters">
@@ -185,6 +206,21 @@ const PendingEvaluations = () => {
           Next →
         </button>
       </div>
+
+      {showMappingModal && (
+        <UpdateEvaluationMappingModal
+          examId={selectedExamId || ''}
+          onClose={() => {
+            setShowMappingModal(false);
+            setSelectedExamId(null);
+          }}
+          onSuccess={() => {
+            setShowMappingModal(false);
+            setSelectedExamId(null);
+            // Optionally refresh data
+          }}
+        />
+      )}
     </div>
   );
 };

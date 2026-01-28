@@ -47,6 +47,11 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
   userEmail,
   onClose,
 }) => {
+  // Validate props
+  if (!userId) {
+    console.error('UserDetailsModal: userId is missing or undefined', { userId, userName, userEmail });
+  }
+  
   const [isEditMode, setIsEditMode] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -62,21 +67,66 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
   const fetchUserProfile = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/auth/user/${userId}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch user profile');
+      setError('');
+      
+      // Validate userId
+      if (!userId || userId.trim() === '' || userId === 'undefined') {
+        setError('Invalid user ID. Cannot load profile.');
+        setLoading(false);
+        console.error('UserDetailsModal: Invalid userId:', { userId, userName, userEmail });
+        return;
       }
+      
+      console.log(`Fetching user profile for userId: ${userId}`);
+      
+      // Try multiple endpoints for better compatibility
+      let response = await fetch(`/api/auth/user/${userId}`);
+      
+      // If the relative path fails, try with localhost
+      if (!response.ok && response.status === 404) {
+        console.log('Trying alternative endpoint...');
+        response = await fetch(`http://localhost:3000/api/auth/user/${userId}`);
+      }
+      
+      console.log(`Response status: ${response.status}`);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Response error:', errorText);
+        throw new Error(`Failed to fetch user profile: ${response.status} ${response.statusText}`);
+      }
+      
       const data = await response.json();
+      console.log('Fetched data:', data);
+      
+      if (!data || (!data.user && !data.profile)) {
+        console.warn('No user or profile data received');
+        // Use provided data as fallback
+        const fallbackData: UserProfileData = {
+          id: userId,
+          name: userName,
+          email: userEmail,
+          role: 'User',
+          isActive: true,
+          createdAt: new Date().toISOString(),
+        };
+        setFormData(fallbackData);
+        setOriginalData(fallbackData);
+        return;
+      }
+      
       const profileData = {
         ...data.user,
         ...data.profile,
       };
+      
       setFormData(profileData);
       setOriginalData(profileData);
       setError('');
-    } catch (err) {
-      setError('Failed to load user profile');
-      console.error(err);
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to load user profile';
+      setError(errorMessage);
+      console.error('Error fetching user profile:', err);
     } finally {
       setLoading(false);
     }
@@ -159,6 +209,58 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
     );
   }
 
+  if (error && !formData) {
+    return (
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <button className="close-btn" onClick={onClose}>
+            <FaTimes />
+          </button>
+          <div style={{ padding: '20px', textAlign: 'center' }}>
+            <p style={{ color: '#d32f2f', marginBottom: '10px', fontWeight: 'bold' }}>
+              ⚠️ Error Loading Profile
+            </p>
+            <p style={{ color: '#666', marginBottom: '15px' }}>
+              {error}
+            </p>
+            <p style={{ color: '#999', fontSize: '12px', marginBottom: '15px' }}>
+              User ID: {userId}
+            </p>
+            <button 
+              onClick={() => {
+                fetchUserProfile();
+              }}
+              style={{
+                background: '#1976d2',
+                color: 'white',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                marginRight: '8px'
+              }}
+            >
+              Retry
+            </button>
+            <button 
+              onClick={onClose}
+              style={{
+                background: '#666',
+                color: 'white',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!formData) {
     return (
       <div className="modal-overlay" onClick={onClose}>
@@ -166,7 +268,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
           <button className="close-btn" onClick={onClose}>
             <FaTimes />
           </button>
-          <p>Failed to load user profile</p>
+          <p>No user profile data available</p>
         </div>
       </div>
     );

@@ -6,6 +6,7 @@ import type { Classroom } from '../../services/classroomAPI';
 import AnnouncementForm from '../../components/AnnouncementForm';
 import AnnouncementFeed from '../../components/AnnouncementFeed';
 import MaterialUploadForm from '../components/MaterialUploadForm';
+import ChatPage from '../../components/Chat/ChatPage';
 import {
   FaHome, FaFileAlt, FaUsers, FaChalkboard, FaSignOutAlt,
   FaBars, FaTimes, FaClock, FaCheckCircle, FaTimesCircle,
@@ -15,7 +16,7 @@ import {
   FaBell, FaCog, FaChevronDown, FaFolder, FaFile, FaImage,
   FaVideo, FaLink, FaPaperclip, FaThumbtack, FaTrash,
   FaReply, FaHeart, FaChevronRight, FaGraduationCap,
-  FaChartBar, FaPercentage, FaAward, FaLightbulb, FaArrowLeft, FaSpinner
+  FaChartBar, FaPercentage, FaAward, FaLightbulb, FaArrowLeft, FaSpinner, FaEnvelope
 } from 'react-icons/fa';
 import './EvaluatorDashboardV2.css';
 
@@ -84,7 +85,7 @@ interface Exam {
 const EvaluatorDashboardV2: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { userEmail, accessToken, logout } = useAuth();
+  const { userEmail, accessToken, logout, userId } = useAuth();
 
   // Get active tab from URL
   const getActiveTabFromUrl = (): string => {
@@ -92,7 +93,7 @@ const EvaluatorDashboardV2: React.FC = () => {
     const segments = pathname.split('/');
     const lastSegment = segments[segments.length - 1];
     
-    const validTabs = ['dashboard', 'evaluations', 'classroom', 'analytics'];
+    const validTabs = ['dashboard', 'evaluations', 'classroom', 'analytics', 'chat'];
     return validTabs.includes(lastSegment) ? lastSegment : 'dashboard';
   };
 
@@ -129,6 +130,8 @@ const EvaluatorDashboardV2: React.FC = () => {
   // Loading states
   const [loadingExams, setLoadingExams] = useState(false);
   const [loadingClasses, setLoadingClasses] = useState(false);
+  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
+  const [loadingProfile, setLoadingProfile] = useState(false);
 
   // Dashboard stats
   const stats = {
@@ -149,6 +152,52 @@ const EvaluatorDashboardV2: React.FC = () => {
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+  };
+
+  // Check authentication on component mount
+  useEffect(() => {
+    const token = sessionStorage.getItem('accessToken');
+    const email = sessionStorage.getItem('userEmail');
+    
+    console.log('🔐 EvaluatorDashboardV2 Auth Check:', {
+      hasToken: !!token,
+      hasEmail: !!email,
+      contextAccessToken: !!accessToken,
+      contextUserEmail: !!userEmail,
+    });
+
+    if (!token || !email) {
+      console.warn('❌ No authentication found, redirecting to login');
+      navigate('/login');
+    }
+  }, [accessToken, userEmail, navigate]);
+
+  // Fetch user profile image
+  useEffect(() => {
+    if (userId) {
+      fetchProfileImage();
+    }
+  }, [userId]);
+
+  const fetchProfileImage = async () => {
+    try {
+      setLoadingProfile(true);
+      const response = await fetch(`/api/auth/user/${userId}`, {
+        headers: { 'Authorization': `Bearer ${accessToken}` },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.profile?.profileImageUrl) {
+          setProfileImageUrl(data.profile.profileImageUrl);
+          console.log('✅ Profile image loaded:', data.profile.profileImageUrl);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching profile image:', error);
+    } finally {
+      setLoadingProfile(false);
+    }
   };
 
   // Sync activeTab with URL changes
@@ -622,6 +671,7 @@ const EvaluatorDashboardV2: React.FC = () => {
     { id: 'evaluations', label: 'Evaluations', icon: <FaFileAlt /> },
     { id: 'classroom', label: 'Classroom', icon: <FaChalkboard /> },
     { id: 'analytics', label: 'Analytics', icon: <FaChartBar /> },
+    { id: 'chat', label: 'Chat', icon: <FaEnvelope /> },
   ];
 
   return (
@@ -640,7 +690,25 @@ const EvaluatorDashboardV2: React.FC = () => {
 
         <div className="user-info">
           <div className="user-avatar">
-            {userEmail?.charAt(0).toUpperCase() || 'E'}
+            {profileImageUrl ? (
+              <img 
+                src={profileImageUrl} 
+                alt={userEmail?.split('@')[0] || 'Profile'} 
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  borderRadius: '50%',
+                  objectFit: 'cover'
+                }}
+                onError={(e) => {
+                  // Fallback to letter if image fails to load
+                  (e.currentTarget as HTMLImageElement).style.display = 'none';
+                }}
+              />
+            ) : null}
+            {!profileImageUrl && (
+              <span>{userEmail?.charAt(0).toUpperCase() || 'E'}</span>
+            )}
           </div>
           <div className="user-details">
             <h4>{userEmail?.split('@')[0] || 'Evaluator'}</h4>
@@ -1278,6 +1346,13 @@ const EvaluatorDashboardV2: React.FC = () => {
                   </div>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* Chat Tab */}
+          {activeTab === 'chat' && (
+            <div className="tab-content chat-tab">
+              <ChatPage />
             </div>
           )}
         </div>

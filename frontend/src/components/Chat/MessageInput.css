@@ -1,0 +1,78 @@
+/* MessageInput.css */
+.message-input-container {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 10px 15px;
+  background: white;
+  border-top: 1px solid #e0e0e0;
+}
+
+.message-input-actions {
+  display: flex;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.action-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid #ddd;
+  background: white;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-btn:hover {
+  background: #f0f0f0;
+  border-color: #007bff;
+}
+
+.message-textarea {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  font-family: inherit;
+  font-size: 14px;
+  resize: none;
+  max-height: 100px;
+  transition: border-color 0.3s ease;
+}
+
+.message-textarea:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.send-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.send-btn:hover:not(:disabled) {
+  background: #0056b3;
+  transform: scale(1.1);
+}
+
+.send-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

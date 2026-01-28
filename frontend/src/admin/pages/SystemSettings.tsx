@@ -1,16 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaCog, FaKey, FaBell, FaDownload, FaSave } from 'react-icons/fa';
+import { useAuth } from '../../context/AuthContext';
 
 const SystemSettings = () => {
+  const { organizationName, userEmail } = useAuth();
   const [activeTab, setActiveTab] = useState('general');
+  
+  const getAdminProfileImage = () => {
+    const userId = sessionStorage.getItem('userId');
+    if (userId) {
+      return localStorage.getItem(`adminProfileImageUrl_${userId}`) || '';
+    }
+    return '';
+  };
+  
   const [settings, setSettings] = useState({
-    organization: 'Evalis Exam Platform',
-    email: 'noreply@evalis.com',
+    organization: organizationName || 'Evalis Exam Platform',
+    email: userEmail || 'noreply@evalis.com',
     phone: '+1-800-123-4567',
     address: '123 Tech Street, Innovation City',
     timezone: 'UTC+5:30',
     language: 'English',
-    theme: 'light',
+    theme: localStorage.getItem('theme') || 'light',
+    profileImageUrl: getAdminProfileImage(),
     autoBackup: true,
     backupFrequency: 'weekly',
     maxFileSize: 100,
@@ -20,12 +32,95 @@ const SystemSettings = () => {
     apiRateLimit: 1000
   });
 
+  // Apply theme on component mount or when theme changes
+  useEffect(() => {
+    const theme = settings.theme;
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+    
+    // Apply theme to body background
+    if (theme === 'dark') {
+      document.body.style.backgroundColor = '#1a1a1a';
+      document.body.style.color = '#ffffff';
+    } else {
+      document.body.style.backgroundColor = '#ffffff';
+      document.body.style.color = '#000000';
+    }
+  }, [settings.theme]);
+
   const handleSettingChange = (key: string, value: any) => {
     setSettings({ ...settings, [key]: value });
   };
 
-  const handleSave = () => {
-    alert('Settings saved successfully!');
+  const handleSave = async () => {
+    try {
+      // Save profile image URL to localStorage with user-specific key
+      if (settings.profileImageUrl) {
+        const userId = sessionStorage.getItem('userId');
+        if (userId) {
+          localStorage.setItem(`adminProfileImageUrl_${userId}`, settings.profileImageUrl);
+        }
+      }
+
+      // Try to save to backend if user data is available
+      const userId = sessionStorage.getItem('userId');
+      const accessToken = sessionStorage.getItem('accessToken');
+      const role = sessionStorage.getItem('role');
+      
+      console.log('Saving profile image URL:', {
+        userId,
+        role,
+        hasAccessToken: !!accessToken,
+        profileImageUrl: settings.profileImageUrl
+      });
+      
+      if (userId && accessToken && settings.profileImageUrl) {
+        try {
+          // Determine if this is an admin or regular user
+          const isAdmin = role === 'admin';
+          const endpoint = isAdmin 
+            ? `/api/auth/admin/${userId}/profile`
+            : `/api/auth/user/${userId}/profile`;
+          
+          console.log(`Making PUT request to ${endpoint}`);
+          const response = await fetch(endpoint, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              profileUrl: settings.profileImageUrl
+            })
+          });
+
+          console.log('Backend response status:', response.status);
+          const responseData = await response.json();
+          console.log('Backend response data:', responseData);
+
+          if (response.ok) {
+            alert('✅ Profile image URL saved successfully!');
+            // Reload the admin dashboard to update the profile image
+            setTimeout(() => {
+              window.location.reload();
+            }, 500);
+          } else {
+            console.error('Backend returned error:', responseData);
+            // Still save locally even if backend fails
+            alert('✅ Profile image saved locally! (Backend sync in progress...)');
+          }
+        } catch (error) {
+          console.error('Error saving to backend:', error);
+          // Backend failure is not critical - URL is saved in localStorage
+          alert('✅ Profile image saved locally! (Will sync with server on next request)');
+        }
+      } else {
+        alert('Settings saved to local storage!');
+      }
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      alert('Error saving settings');
+    }
   };
 
   return (
@@ -111,15 +206,20 @@ const SystemSettings = () => {
                 <input
                   type="text"
                   value={settings.organization}
-                  onChange={(e) => handleSettingChange('organization', e.target.value)}
+                  disabled={true}
+                  title="Organization name is fixed and cannot be edited"
                   style={{
                     width: '100%',
                     padding: '10px',
                     border: '1px solid #e0e6ed',
                     borderRadius: '8px',
-                    boxSizing: 'border-box'
+                    boxSizing: 'border-box',
+                    backgroundColor: '#f5f5f5',
+                    cursor: 'not-allowed',
+                    color: '#666'
                   }}
                 />
+                <small style={{ color: '#999', marginTop: '5px', display: 'block' }}>Fixed to your organization</small>
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: '#333' }}>
@@ -128,15 +228,20 @@ const SystemSettings = () => {
                 <input
                   type="email"
                   value={settings.email}
-                  onChange={(e) => handleSettingChange('email', e.target.value)}
+                  disabled={true}
+                  title="Email address is fixed and cannot be edited"
                   style={{
                     width: '100%',
                     padding: '10px',
                     border: '1px solid #e0e6ed',
                     borderRadius: '8px',
-                    boxSizing: 'border-box'
+                    boxSizing: 'border-box',
+                    backgroundColor: '#f5f5f5',
+                    cursor: 'not-allowed',
+                    color: '#666'
                   }}
                 />
+                <small style={{ color: '#999', marginTop: '5px', display: 'block' }}>System email - cannot be changed</small>
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: '#333' }}>
@@ -226,15 +331,75 @@ const SystemSettings = () => {
                   style={{
                     width: '100%',
                     padding: '10px',
+                    border: '2px solid #667eea',
+                    borderRadius: '8px',
+                    boxSizing: 'border-box',
+                    backgroundColor: settings.theme === 'dark' ? '#333' : '#fff',
+                    color: settings.theme === 'dark' ? '#fff' : '#000',
+                    cursor: 'pointer',
+                    fontWeight: '500'
+                  }}
+                >
+                  <option value="light">☀️ Light Mode</option>
+                  <option value="dark">🌙 Dark Mode</option>
+                </select>
+                <small style={{ color: '#999', marginTop: '5px', display: 'block' }}>
+                  ✓ Changes apply immediately
+                </small>
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: '#333' }}>
+                  Profile Image URL
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://example.com/profile-image.jpg"
+                  value={settings.profileImageUrl}
+                  onChange={(e) => handleSettingChange('profileImageUrl', e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
                     border: '1px solid #e0e6ed',
                     borderRadius: '8px',
                     boxSizing: 'border-box'
                   }}
-                >
-                  <option value="light">Light Mode</option>
-                  <option value="dark">Dark Mode</option>
-                </select>
+                />
+                <small style={{ color: '#999', marginTop: '5px', display: 'block' }}>
+                  Enter the URL of your profile picture. It will appear in the top-left corner of the dashboard.
+                </small>
               </div>
+              {settings.profileImageUrl && (
+                <div>
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: '#333' }}>
+                    Preview
+                  </label>
+                  <div style={{
+                    display: 'inline-block',
+                    width: '100px',
+                    height: '100px',
+                    borderRadius: '8px',
+                    border: '2px solid #e0e6ed',
+                    overflow: 'hidden',
+                    backgroundColor: '#ffffff',
+                    flexShrink: 0
+                  }}>
+                    <img 
+                      src={settings.profileImageUrl} 
+                      alt="Profile Preview" 
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        objectPosition: 'center',
+                        display: 'block'
+                      }}
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

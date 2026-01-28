@@ -7,6 +7,7 @@ import {
   FaCheckCircle,
   FaSpinner,
 } from 'react-icons/fa';
+import { useAuth } from '../../../context/AuthContext';
 import ExamBasicInfo from './ExamBasicInfo';
 import ExamSettings from './ExamSettings';
 import ExamQuestions from './ExamQuestions';
@@ -71,12 +72,14 @@ interface CreateExamProps {
 }
 
 const CreateExam: React.FC<CreateExamProps> = ({ onClose, onSuccess, examId }) => {
+  const { accessToken } = useAuth();
   const [activeStep, setActiveStep] = useState(1);
   const [examData, setExamData] = useState<ExamData>(INITIAL_EXAM_DATA);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [questionIdCounter, setQuestionIdCounter] = useState(0);
 
   const STEPS = [
     { number: 1, title: 'Basic Info', component: ExamBasicInfo },
@@ -144,18 +147,22 @@ const CreateExam: React.FC<CreateExamProps> = ({ onClose, onSuccess, examId }) =
   };
 
   const handleAddQuestion = (question: any) => {
+    const newId = Date.now() + questionIdCounter;
+    setQuestionIdCounter((prev) => prev + 1);
     setExamData((prev) => ({
       ...prev,
-      questions: [...prev.questions, { ...question, id: Date.now() }],
+      questions: [...prev.questions, { ...question, id: newId }],
     }));
   };
 
   const handleAddProgrammingQuestion = (question: any) => {
+    const newId = Date.now() + questionIdCounter;
+    setQuestionIdCounter((prev) => prev + 1);
     setExamData((prev) => ({
       ...prev,
       programmingQuestions: [
         ...prev.programmingQuestions,
-        { ...question, id: Date.now() },
+        { ...question, id: newId },
       ],
     }));
   };
@@ -211,19 +218,33 @@ const CreateExam: React.FC<CreateExamProps> = ({ onClose, onSuccess, examId }) =
       return;
     }
 
+    if (!accessToken) {
+      setError('Authentication token not found. Please log in again.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     try {
+      console.log('📤 Submitting exam with data:', {
+        examName: examData.name,
+        questionCount: examData.examType === 'MCQ' ? examData.questions.length : examData.programmingQuestions.length,
+        questions: examData.questions,
+        token: `${accessToken.substring(0, 20)}...` // Log first 20 chars of token for debugging
+      });
+
       const endpoint = examId ? `/exams/${examId}` : '/exams';
       const method = examId ? 'PATCH' : 'POST';
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
+      console.log('🔐 Using token from AuthContext, making request to:', `${apiUrl}/api${endpoint}`);
 
       const response = await fetch(`${apiUrl}/api${endpoint}`, {
         method,
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${sessionStorage.getItem('accessToken')}`,
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
           ...examData,
@@ -234,40 +255,93 @@ const CreateExam: React.FC<CreateExamProps> = ({ onClose, onSuccess, examId }) =
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        const errorMessage = errorData.message || `Failed to create exam (${response.status})`;
+        let errorMessage = errorData.message || `Failed to create exam (${response.status})`;
+        
+        if (response.status === 401) {
+          console.error('🔐 Authentication error details:', {
+            status: response.status,
+            statusText: response.statusText,
+            errorData,
+            tokenPrefix: accessToken.substring(0, 20),
+          });
+          errorMessage = 'Unauthorized: Your session may have expired. Please log in again.';
+        } else if (response.status === 403) {
+          errorMessage = 'Forbidden: You do not have permission to create exams.';
+        }
+        
         throw new Error(errorMessage);
       }
 
       const exam = await response.json();
+      
+      console.log('✅ Exam created:', exam.id, 'Now saving', examData.questions.length, 'questions');
 
       // Add questions in separate requests
       if (examData.examType === 'MCQ') {
+        const questionErrors: string[] = [];
         for (const question of examData.questions) {
-          await fetch(
-            `${apiUrl}/api/exams/${exam.id}/questions`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${sessionStorage.getItem('accessToken')}`,
+          try {
+            console.log('📝 Sending question to backend:', {
+              questionText: question.questionText?.substring(0, 50),
+              allowMultipleCorrect: question.allowMultipleCorrect,
+              correctAnswers: question.correctAnswers,
+              correctAnswer: question.correctAnswer,
+            });
+            const questionResponse = await fetch(
+              `${apiUrl}/api/exams/${exam.id}/questions`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${accessToken}`,
+                },
+                body: JSON.stringify(question),
               },
-              body: JSON.stringify(question),
-            },
-          );
+            );
+            
+            if (!questionResponse.ok) {
+              const errorData = await questionResponse.json().catch(() => ({}));
+              questionErrors.push(`Question failed: ${errorData.message || 'Unknown error'}`);
+              console.error('Question save failed:', question, errorData);
+            }
+          } catch (err) {
+            questionErrors.push(`Question error: ${err instanceof Error ? err.message : 'Unknown error'}`);
+            console.error('Question error:', question, err);
+          }
+        }
+        
+        if (questionErrors.length > 0) {
+          throw new Error(`Some questions failed to save: ${questionErrors.join(', ')}`);
         }
       } else {
+        const questionErrors: string[] = [];
         for (const question of examData.programmingQuestions) {
-          await fetch(
-            `${apiUrl}/api/exams/${exam.id}/programming-questions`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${sessionStorage.getItem('accessToken')}`,
+          try {
+            const questionResponse = await fetch(
+              `${apiUrl}/api/exams/${exam.id}/programming-questions`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${accessToken}`,
+                },
+                body: JSON.stringify(question),
               },
-              body: JSON.stringify(question),
-            },
-          );
+            );
+            
+            if (!questionResponse.ok) {
+              const errorData = await questionResponse.json().catch(() => ({}));
+              questionErrors.push(`Question failed: ${errorData.message || 'Unknown error'}`);
+              console.error('Programming question save failed:', question, errorData);
+            }
+          } catch (err) {
+            questionErrors.push(`Question error: ${err instanceof Error ? err.message : 'Unknown error'}`);
+            console.error('Programming question error:', question, err);
+          }
+        }
+        
+        if (questionErrors.length > 0) {
+          throw new Error(`Some questions failed to save: ${questionErrors.join(', ')}`);
         }
       }
 

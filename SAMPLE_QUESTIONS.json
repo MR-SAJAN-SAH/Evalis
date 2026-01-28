@@ -1,0 +1,62 @@
+[
+  {
+    "questionText": "What is the capital of France?",
+    "questionType": "MCQ",
+    "marks": 1,
+    "difficultyLevel": "EASY",
+    "optionA": "London",
+    "optionB": "Paris",
+    "optionC": "Berlin",
+    "optionD": "Rome",
+    "correctAnswer": "B",
+    "correctAnswerExplanation": "Paris is the capital city of France."
+  },
+  {
+    "questionText": "Which planet is known as the Red Planet?",
+    "questionType": "MCQ",
+    "marks": 1,
+    "difficultyLevel": "EASY",
+    "optionA": "Venus",
+    "optionB": "Mars",
+    "optionC": "Jupiter",
+    "optionD": "Saturn",
+    "correctAnswer": "B",
+    "correctAnswerExplanation": "Mars is known as the Red Planet because of its reddish surface."
+  },
+  {
+    "questionText": "What is the largest ocean on Earth?",
+    "questionType": "MCQ",
+    "marks": 2,
+    "difficultyLevel": "EASY",
+    "optionA": "Atlantic Ocean",
+    "optionB": "Indian Ocean",
+    "optionC": "Arctic Ocean",
+    "optionD": "Pacific Ocean",
+    "correctAnswer": "D",
+    "correctAnswerExplanation": "The Pacific Ocean is the largest and deepest ocean on Earth."
+  },
+  {
+    "questionText": "In which year did World War II end?",
+    "questionType": "MCQ",
+    "marks": 2,
+    "difficultyLevel": "MEDIUM",
+    "optionA": "1943",
+    "optionB": "1944",
+    "optionC": "1945",
+    "optionD": "1946",
+    "correctAnswer": "C",
+    "correctAnswerExplanation": "World War II ended in 1945 with the surrender of Japan on September 2."
+  },
+  {
+    "questionText": "What is the chemical formula for water?",
+    "questionType": "MCQ",
+    "marks": 1,
+    "difficultyLevel": "EASY",
+    "optionA": "H2O",
+    "optionB": "CO2",
+    "optionC": "O2",
+    "optionD": "H2O2",
+    "correctAnswer": "A",
+    "correctAnswerExplanation": "Water is composed of 2 hydrogen atoms and 1 oxygen atom (H2O)."
+  }
+]

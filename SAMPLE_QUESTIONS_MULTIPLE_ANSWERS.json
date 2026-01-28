@@ -1,0 +1,78 @@
+[
+  {
+    "questionText": "What is the capital of France?",
+    "questionType": "MCQ",
+    "marks": 1,
+    "difficultyLevel": "EASY",
+    "optionA": "London",
+    "optionB": "Paris",
+    "optionC": "Berlin",
+    "optionD": "Rome",
+    "correctAnswer": "B",
+    "correctAnswerExplanation": "Paris is the capital and largest city of France."
+  },
+  {
+    "questionText": "Select all programming languages below:",
+    "questionType": "MCQ",
+    "marks": 2,
+    "difficultyLevel": "MEDIUM",
+    "optionA": "Java",
+    "optionB": "Python",
+    "optionC": "HTML",
+    "optionD": "JavaScript",
+    "correctAnswers": ["A", "B", "D"],
+    "allowMultipleCorrect": true,
+    "correctAnswerExplanation": "Java, Python, and JavaScript are programming languages. HTML is a markup language, not a programming language. Full marks only if all three (A, B, D) are selected."
+  },
+  {
+    "questionText": "Which of these are cloud computing platforms?",
+    "questionType": "MCQ",
+    "marks": 2,
+    "difficultyLevel": "MEDIUM",
+    "optionA": "AWS",
+    "optionB": "Microsoft Azure",
+    "optionC": "GitHub",
+    "optionD": "Google Cloud Platform",
+    "correctAnswers": ["A", "B", "D"],
+    "allowMultipleCorrect": true,
+    "correctAnswerExplanation": "AWS, Microsoft Azure, and Google Cloud Platform are major cloud computing providers. GitHub is a version control and code hosting platform."
+  },
+  {
+    "questionText": "What does HTML stand for?",
+    "questionType": "MCQ",
+    "marks": 1,
+    "difficultyLevel": "EASY",
+    "optionA": "Hyper Text Markup Language",
+    "optionB": "High Tech Modern Language",
+    "optionC": "Home Tool Markup Language",
+    "optionD": "Hyperlinks and Text Markup Language",
+    "correctAnswer": "A",
+    "correctAnswerExplanation": "HTML stands for HyperText Markup Language, which is the standard markup language for creating web pages."
+  },
+  {
+    "questionText": "Select all relational databases:",
+    "questionType": "MCQ",
+    "marks": 2,
+    "difficultyLevel": "MEDIUM",
+    "optionA": "MySQL",
+    "optionB": "MongoDB",
+    "optionC": "PostgreSQL",
+    "optionD": "Redis",
+    "correctAnswers": ["A", "C"],
+    "allowMultipleCorrect": true,
+    "correctAnswerExplanation": "MySQL and PostgreSQL are relational databases. MongoDB is a NoSQL document database, and Redis is an in-memory data store."
+  },
+  {
+    "questionText": "Which frameworks are for front-end development?",
+    "questionType": "MCQ",
+    "marks": 3,
+    "difficultyLevel": "HARD",
+    "optionA": "React",
+    "optionB": "Django",
+    "optionC": "Vue.js",
+    "optionD": "Angular",
+    "correctAnswers": ["A", "C", "D"],
+    "allowMultipleCorrect": true,
+    "correctAnswerExplanation": "React, Vue.js, and Angular are popular front-end JavaScript frameworks. Django is a Python backend framework."
+  }
+]

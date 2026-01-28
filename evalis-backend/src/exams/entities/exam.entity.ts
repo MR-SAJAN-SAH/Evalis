@@ -116,6 +116,12 @@ export class Exam {
   @Column({ type: 'enum', enum: ExamStatus, default: ExamStatus.DRAFT })
   status: ExamStatus;
 
+  @Column({ default: 0, nullable: true })
+  publishedCandidateCount: number;
+
+  @Column({ type: 'timestamp', nullable: true })
+  publishedAt: Date;
+
   @Column()
   createdBy: string;
 

@@ -17,6 +17,8 @@ const INITIAL_QUESTION = {
   optionC: '',
   optionD: '',
   correctAnswer: 'A',
+  correctAnswers: [], // Support for multiple correct answers - starts empty
+  allowMultipleCorrect: false, // Flag to enable multiple correct answers
   correctAnswerExplanation: '',
   hasImage: false,
   imageUrl: '',
@@ -46,10 +48,24 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave, onCan
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
 
-    setFormData((prev: any) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : type === 'number' ? Number(value) : value,
-    }));
+    setFormData((prev: any) => {
+      const newData = {
+        ...prev,
+        [name]: type === 'checkbox' ? checked : type === 'number' ? Number(value) : value,
+      };
+      
+      // When switching to multiple correct answers mode, initialize from current single answer
+      if (name === 'allowMultipleCorrect' && checked) {
+        newData.correctAnswers = prev.correctAnswer ? [prev.correctAnswer] : [];
+      }
+      
+      // When switching away from multiple mode, clear the array
+      if (name === 'allowMultipleCorrect' && !checked) {
+        newData.correctAnswers = [];
+      }
+      
+      return newData;
+    });
 
     if (errors[name]) {
       setErrors((prev) => {
@@ -209,20 +225,111 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave, onCan
 
       {/* Correct Answer */}
       <div className="form-group">
-        <label htmlFor="correctAnswer">Correct Answer</label>
-        <select
-          id="correctAnswer"
-          name="correctAnswer"
-          value={formData.correctAnswer}
-          onChange={handleInputChange}
-          className="form-input"
-        >
-          <option value="A">A</option>
-          <option value="B">B</option>
-          {formData.optionC && <option value="C">C</option>}
-          {formData.optionD && <option value="D">D</option>}
-        </select>
+        <label>
+          <input
+            type="checkbox"
+            name="allowMultipleCorrect"
+            checked={formData.allowMultipleCorrect}
+            onChange={handleInputChange}
+            style={{ marginRight: '8px' }}
+          />
+          Allow Multiple Correct Answers
+        </label>
       </div>
+
+      {formData.allowMultipleCorrect ? (
+        <div className="form-group">
+          <label style={{ fontWeight: '600', display: 'block', marginBottom: '12px' }}>Mark Correct Answers</label>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            {['A', 'B', 'C', 'D'].map((option) => {
+              const optionKey = `option${option}`;
+              if (!formData[optionKey]) return null;
+              
+              const isSelected = formData.correctAnswers?.includes(option) || false;
+              
+              return (
+                <div
+                  key={option}
+                  onClick={() => {
+                    const newCorrectAnswers = [...(formData.correctAnswers || [])];
+                    if (isSelected) {
+                      const index = newCorrectAnswers.indexOf(option);
+                      if (index > -1) {
+                        newCorrectAnswers.splice(index, 1);
+                      }
+                    } else {
+                      if (!newCorrectAnswers.includes(option)) {
+                        newCorrectAnswers.push(option);
+                      }
+                    }
+                    setFormData((prev: any) => ({
+                      ...prev,
+                      correctAnswers: newCorrectAnswers,
+                    }));
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    padding: '12px',
+                    border: isSelected ? '2px solid #2196f3' : '1px solid #ddd',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    backgroundColor: isSelected ? '#e3f2fd' : '#f9f9f9',
+                    transition: 'all 0.2s',
+                    position: 'relative',
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => {}}
+                    style={{ marginRight: '10px', marginTop: '2px', cursor: 'pointer' }}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: '600', color: '#333', marginBottom: '4px' }}>
+                      Option {option}
+                    </div>
+                    <div style={{ color: '#666', fontSize: '14px' }}>
+                      {formData[optionKey]}
+                    </div>
+                  </div>
+                  {isSelected && (
+                    <div style={{ color: '#2196f3', fontSize: '18px', fontWeight: 'bold' }}>✓</div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          {formData.correctAnswers && formData.correctAnswers.length > 0 && (
+            <div style={{ marginTop: '10px', padding: '8px 12px', backgroundColor: '#f0f7ff', borderRadius: '6px', borderLeft: '4px solid #2196f3', fontSize: '13px', color: '#0066cc' }}>
+              Selected: {formData.correctAnswers.join(', ')} (Full marks only if all selected correctly)
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="form-group">
+          <label htmlFor="correctAnswer">Correct Answer</label>
+          <select
+            id="correctAnswer"
+            name="correctAnswer"
+            value={formData.correctAnswer}
+            onChange={(e) => {
+              handleInputChange(e);
+              setFormData((prev: any) => ({
+                ...prev,
+                correctAnswers: [e.target.value],
+              }));
+            }}
+            className="form-input"
+          >
+            <option value="A">A</option>
+            <option value="B">B</option>
+            {formData.optionC && <option value="C">C</option>}
+            {formData.optionD && <option value="D">D</option>}
+          </select>
+        </div>
+      )}
 
       {/* Explanation */}
       <div className="form-group">

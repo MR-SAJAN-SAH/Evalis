@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { FaSearch, FaPlus, FaEdit, FaTrash, FaEye, FaChevronLeft, FaChevronRight, FaSpinner, FaGraduationCap, FaClipboardList, FaCheckCircle, FaClock, FaFilter, FaThLarge, FaList, FaRocket, FaArchive } from 'react-icons/fa';
+import { FaSearch, FaPlus, FaEdit, FaTrash, FaEye, FaChevronLeft, FaChevronRight, FaSpinner, FaGraduationCap, FaClipboardList, FaCheckCircle, FaClock, FaFilter, FaThLarge, FaList, FaRocket, FaArchive, FaUndo } from 'react-icons/fa';
 import CreateExam from '../components/exam/CreateExam';
+import ExamDetailsModal from '../components/exam/ExamDetailsModal';
+import PublishModal from '../components/exam/PublishModal';
+import type { PublishFilters } from '../components/exam/PublishModal';
 import '../styles/admin.css';
 import '../styles/exams-enhanced.css';
 
@@ -32,6 +35,12 @@ const AllExams = () => {
   const [viewMode, setViewMode] = useState<'table' | 'card'>('card');
   const [currentPage, setCurrentPage] = useState(1);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showPublishModal, setShowPublishModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedExamForPublish, setSelectedExamForPublish] = useState<Exam | null>(null);
+  const [selectedExamForView, setSelectedExamForView] = useState<string | null>(null);
+  const [editingExamId, setEditingExamId] = useState<string | null>(null);
+  const [publishLoading, setPublishLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const itemsPerPage = viewMode === 'card' ? 12 : 10;
@@ -98,23 +107,45 @@ const AllExams = () => {
   };
 
   const handlePublishExam = async (id: string) => {
+    const exam = exams.find((e) => e.id === id);
+    if (exam) {
+      setSelectedExamForPublish(exam);
+      setShowPublishModal(true);
+    }
+  };
+
+  const handlePublishWithFilters = async (filters: PublishFilters) => {
+    if (!selectedExamForPublish) return;
+
     try {
+      setPublishLoading(true);
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-      const response = await fetch(`${apiUrl}/api/exams/${id}/publish`, {
+      
+      console.log('Sending publish request with filters:', filters);
+      console.log('Selected exam:', selectedExamForPublish);
+      
+      const response = await fetch(`${apiUrl}/api/exams/${selectedExamForPublish.id}/publish`, {
         method: 'PATCH',
         headers: {
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${sessionStorage.getItem('accessToken')}`,
         },
+        body: JSON.stringify(filters),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to publish exam');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to publish exam');
       }
 
+      setShowPublishModal(false);
+      setSelectedExamForPublish(null);
       fetchExams();
-      alert('Exam published successfully!');
+      alert('Exam published successfully with selected filters!');
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to publish exam');
+    } finally {
+      setPublishLoading(false);
     }
   };
 
@@ -141,8 +172,42 @@ const AllExams = () => {
     }
   };
 
+  const handleUnpublishExam = async (id: string) => {
+    if (window.confirm('Are you sure you want to unpublish this exam? It will revert to DRAFT status and candidates will no longer see it.')) {
+      try {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+        const response = await fetch(`${apiUrl}/api/exams/${id}/unpublish`, {
+          method: 'PATCH',
+          headers: {
+            Authorization: `Bearer ${sessionStorage.getItem('accessToken')}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to unpublish exam');
+        }
+
+        fetchExams();
+        alert('Exam unpublished successfully! It has been reverted to DRAFT status.');
+      } catch (err) {
+        alert(err instanceof Error ? err.message : 'Failed to unpublish exam');
+      }
+    }
+  };
+
+  const handleViewExam = (examId: string) => {
+    setSelectedExamForView(examId);
+    setShowDetailsModal(true);
+  };
+
+  const handleEditExam = (exam: any) => {
+    setEditingExamId(exam.id);
+    setShowCreateModal(true);
+  };
+
   const handleCreateSuccess = () => {
     setShowCreateModal(false);
+    setEditingExamId(null);
     fetchExams();
   };
 
@@ -390,10 +455,30 @@ const AllExams = () => {
                       <p className="created-date">Created: {new Date(exam.createdAt).toLocaleDateString()}</p>
                     </div>
                     <div className="card-actions">
-                      <button className="btn-icon view" title="View exam">
+                      <button 
+                        className="btn-icon view" 
+                        title="View exam details"
+                        onClick={() => handleViewExam(exam.id)}
+                      >
                         <FaEye />
                       </button>
-                      <button className="btn-icon edit" title="Edit exam">
+                      <button 
+                        className="btn-icon edit" 
+                        title={exam.status === 'PUBLISHED' ? 'Cannot edit published exam' : 'Edit exam'}
+                        onClick={() => {
+                          if (exam.status === 'PUBLISHED') {
+                            alert('This exam is PUBLISHED and cannot be edited. Please unpublish it first to make changes.');
+                          } else {
+                            const confirmEdit = window.confirm(
+                              `Are you sure you want to edit "${exam.name}"?\n\nThis will allow you to modify the exam questions and settings.`
+                            );
+                            if (confirmEdit) {
+                              handleEditExam(exam);
+                            }
+                          }
+                        }}
+                        disabled={exam.status === 'PUBLISHED'}
+                      >
                         <FaEdit />
                       </button>
                       {exam.status === 'DRAFT' && (
@@ -403,6 +488,15 @@ const AllExams = () => {
                           onClick={() => handlePublishExam(exam.id)}
                         >
                           <FaRocket />
+                        </button>
+                      )}
+                      {exam.status === 'PUBLISHED' && (
+                        <button
+                          className="btn-icon archive"
+                          title="Unpublish exam (Undo)"
+                          onClick={() => handleUnpublishExam(exam.id)}
+                        >
+                          <FaUndo />
                         </button>
                       )}
                       {exam.status === 'PUBLISHED' && (
@@ -463,10 +557,30 @@ const AllExams = () => {
                       </td>
                       <td>{new Date(exam.createdAt).toLocaleDateString()}</td>
                       <td className="actions">
-                        <button className="btn-icon view" title="View exam">
+                        <button 
+                          className="btn-icon view" 
+                          title="View exam details"
+                          onClick={() => handleViewExam(exam.id)}
+                        >
                           <FaEye />
                         </button>
-                        <button className="btn-icon edit" title="Edit exam">
+                        <button 
+                          className="btn-icon edit" 
+                          title={exam.status === 'PUBLISHED' ? 'Cannot edit published exam' : 'Edit exam'}
+                          onClick={() => {
+                            if (exam.status === 'PUBLISHED') {
+                              alert('This exam is PUBLISHED and cannot be edited. Please unpublish it first to make changes.');
+                            } else {
+                              const confirmEdit = window.confirm(
+                                `Are you sure you want to edit "${exam.name}"?\n\nThis will allow you to modify the exam questions and settings.`
+                              );
+                              if (confirmEdit) {
+                                handleEditExam(exam);
+                              }
+                            }
+                          }}
+                          disabled={exam.status === 'PUBLISHED'}
+                        >
                           <FaEdit />
                         </button>
                         {exam.status === 'DRAFT' && (
@@ -476,6 +590,15 @@ const AllExams = () => {
                             onClick={() => handlePublishExam(exam.id)}
                           >
                             <FaRocket />
+                          </button>
+                        )}
+                        {exam.status === 'PUBLISHED' && (
+                          <button
+                            className="btn-icon archive"
+                            title="Unpublish exam (Undo)"
+                            onClick={() => handleUnpublishExam(exam.id)}
+                          >
+                            <FaUndo />
                           </button>
                         )}
                         {exam.status === 'PUBLISHED' && (
@@ -553,11 +676,41 @@ const AllExams = () => {
         <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <CreateExam
-              onClose={() => setShowCreateModal(false)}
+              onClose={() => {
+                setShowCreateModal(false);
+                setEditingExamId(null);
+              }}
               onSuccess={handleCreateSuccess}
             />
           </div>
         </div>
+      )}
+
+      {showDetailsModal && selectedExamForView && (
+        <ExamDetailsModal
+          isOpen={showDetailsModal}
+          examId={selectedExamForView}
+          exam={null}
+          onClose={() => {
+            setShowDetailsModal(false);
+            setSelectedExamForView(null);
+          }}
+          onEdit={handleEditExam}
+        />
+      )}
+
+      {selectedExamForPublish && (
+        <PublishModal
+          isOpen={showPublishModal}
+          examId={selectedExamForPublish.id}
+          examName={selectedExamForPublish.name}
+          onPublish={handlePublishWithFilters}
+          onClose={() => {
+            setShowPublishModal(false);
+            setSelectedExamForPublish(null);
+          }}
+          loading={publishLoading}
+        />
       )}
     </div>
   );

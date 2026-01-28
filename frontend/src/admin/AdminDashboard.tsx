@@ -25,13 +25,22 @@ const AdminDashboard = () => {
       const accessToken = sessionStorage.getItem('accessToken');
       const userEmail = sessionStorage.getItem('userEmail') || '';
       const organizationName = sessionStorage.getItem('organizationName') || '';
+      const role = sessionStorage.getItem('role');
+      const userId = sessionStorage.getItem('userId');
       
-      // Fetch full user profile with image URL
+      // Check for user-specific profile image URL
+      const localProfileImageUrl = userId ? localStorage.getItem(`adminProfileImageUrl_${userId}`) : null;
+      
+      // Fetch full admin profile with image URL
       if (accessToken && userEmail) {
-        const userId = sessionStorage.getItem('userId'); // Ensure userId is stored during login
         if (userId) {
           try {
-            const response = await fetch(`http://localhost:3000/api/auth/user/${userId}`, {
+            // Use admin endpoint if role is admin, otherwise use user endpoint
+            const endpoint = role === 'admin' 
+              ? `/api/auth/admin/${userId}/profile`
+              : `/api/auth/user/${userId}`;
+            
+            const response = await fetch(endpoint, {
               headers: {
                 'Authorization': `Bearer ${accessToken}`,
                 'Content-Type': 'application/json'
@@ -45,7 +54,7 @@ const AdminDashboard = () => {
                 name: userData.name || userEmail.split('@')[0],
                 organizationName: organizationName,
                 role: 'admin',
-                profileUrl: userData.profile?.profileUrl || null
+                profileUrl: localProfileImageUrl || userData.profileUrl || userData.profile?.profileUrl || null
               });
             } else {
               // Fallback if API call fails
@@ -54,7 +63,7 @@ const AdminDashboard = () => {
                 name: userEmail.split('@')[0],
                 organizationName: organizationName,
                 role: 'admin',
-                profileUrl: null
+                profileUrl: localProfileImageUrl || null
               });
             }
           } catch (error) {
@@ -64,7 +73,7 @@ const AdminDashboard = () => {
               name: userEmail.split('@')[0],
               organizationName: organizationName,
               role: 'admin',
-              profileUrl: null
+              profileUrl: localProfileImageUrl || null
             });
           }
         } else {
@@ -73,7 +82,7 @@ const AdminDashboard = () => {
             name: userEmail.split('@')[0],
             organizationName: organizationName,
             role: 'admin',
-            profileUrl: null
+            profileUrl: localProfileImageUrl || null
           });
         }
       }
@@ -103,18 +112,12 @@ const AdminDashboard = () => {
   };
 
   const handleLogout = () => {
-    // Clear auth data from sessionStorage
+    // Clear auth data from sessionStorage only (tab-specific)
     sessionStorage.removeItem('accessToken');
     sessionStorage.removeItem('role');
     sessionStorage.removeItem('userEmail');
     sessionStorage.removeItem('organizationName');
     sessionStorage.removeItem('subscriptionPlan');
-    // Also clear localStorage as fallback
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('role');
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('organizationName');
-    localStorage.removeItem('subscriptionPlan');
     navigate('/');
   };
 

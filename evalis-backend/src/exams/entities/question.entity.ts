@@ -52,6 +52,12 @@ export class Question {
   @Column()
   correctAnswer: string;
 
+  @Column({ type: 'json', nullable: true })
+  correctAnswers: string[]; // Array of correct answers for multi-select questions
+
+  @Column({ default: false })
+  allowMultipleCorrect: boolean; // Flag to indicate if multiple answers are allowed
+
   @Column({ type: 'text', nullable: true })
   correctAnswerExplanation: string;
 

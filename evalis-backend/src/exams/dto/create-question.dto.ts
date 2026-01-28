@@ -33,6 +33,15 @@ export class CreateQuestionDto {
   correctAnswer: string;
 
   @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  correctAnswers?: string[]; // Array of correct answers for multi-select questions
+
+  @IsOptional()
+  @IsBoolean()
+  allowMultipleCorrect?: boolean; // Flag to indicate if multiple answers are allowed
+
+  @IsOptional()
   @IsString()
   correctAnswerExplanation?: string;
 

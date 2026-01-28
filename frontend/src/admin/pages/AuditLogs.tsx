@@ -1,74 +1,73 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaSearch, FaFilter, FaExclamationTriangle, FaLock, FaUser } from 'react-icons/fa';
+import { useAuth } from '../../context/AuthContext';
+
+interface AuditLog {
+  id: string;
+  timestamp: string;
+  user: string;
+  action: string;
+  entityType: string;
+  entityName: string;
+  status: 'success' | 'failure' | 'warning';
+  details: string;
+  createdAt: string;
+}
 
 const AuditLogs = () => {
+  const { accessToken } = useAuth();
   const [filterType, setFilterType] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const itemsPerPage = 10;
 
-  const auditLogs = [
-    {
-      id: 1,
-      timestamp: '2024-01-15 14:32:45',
-      user: 'admin@example.com',
-      action: 'Created new exam',
-      entityType: 'Exam',
-      entityName: 'Java Programming',
-      status: 'success',
-      details: 'Exam created with 50 questions'
-    },
-    {
-      id: 2,
-      timestamp: '2024-01-15 13:15:20',
-      user: 'dr.sharma@example.com',
-      action: 'Updated evaluation',
-      entityType: 'Evaluation',
-      entityName: 'Candidate #123',
-      status: 'success',
-      details: 'Score updated to 85/100'
-    },
-    {
-      id: 3,
-      timestamp: '2024-01-15 12:48:10',
-      user: 'system',
-      action: 'Failed login attempt',
-      entityType: 'Authentication',
-      entityName: 'unknown@example.com',
-      status: 'failure',
-      details: 'Invalid credentials'
-    },
-    {
-      id: 4,
-      timestamp: '2024-01-15 11:20:30',
-      user: 'admin@example.com',
-      action: 'Deleted user account',
-      entityType: 'User',
-      entityName: 'John Doe',
-      status: 'success',
-      details: 'User account permanently deleted'
-    },
-    {
-      id: 5,
-      timestamp: '2024-01-15 10:05:15',
-      user: 'proctor@example.com',
-      action: 'Flagged suspicious activity',
-      entityType: 'Proctoring',
-      entityName: 'Exam Session #456',
-      status: 'warning',
-      details: 'Multiple tab switches detected'
-    },
-    {
-      id: 6,
-      timestamp: '2024-01-15 09:30:00',
-      user: 'admin@example.com',
-      action: 'Updated system settings',
-      entityType: 'Settings',
-      entityName: 'Email Configuration',
-      status: 'success',
-      details: 'SMTP settings updated'
+  // Fetch audit logs from backend
+  useEffect(() => {
+    const fetchAuditLogs = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/audit-logs?limit=100', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          // Transform backend response to match frontend interface
+          const transformedLogs: AuditLog[] = data.data.map((log: any) => ({
+            id: log.id,
+            timestamp: new Date(log.createdAt).toLocaleString(),
+            user: log.user?.email || log.userId || 'system',
+            action: log.action,
+            entityType: log.entityType,
+            entityName: log.entityName || '-',
+            status: log.status,
+            details: log.details || '-',
+            createdAt: log.createdAt,
+          }));
+          setAuditLogs(transformedLogs);
+          setError(null);
+        } else {
+          throw new Error('Failed to fetch audit logs');
+        }
+      } catch (err: any) {
+        console.error('Error fetching audit logs:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (accessToken) {
+      fetchAuditLogs();
     }
-  ];
+  }, [accessToken]);
 
   const filteredLogs = auditLogs.filter(log => {
     const matchesFilter = filterType === 'all' || log.status === filterType;
@@ -94,6 +93,30 @@ const AuditLogs = () => {
         <p className="subtitle">Monitor all system activities and user actions</p>
       </div>
 
+      {error && (
+        <div style={{
+          padding: '15px',
+          backgroundColor: '#fee',
+          color: '#c33',
+          borderRadius: '8px',
+          marginBottom: '20px',
+          border: '1px solid #fcc'
+        }}>
+          ⚠️ Error loading audit logs: {error}
+        </div>
+      )}
+
+      {loading ? (
+        <div style={{
+          textAlign: 'center',
+          padding: '40px',
+          color: '#666'
+        }}>
+          <div style={{ marginBottom: '10px' }}>Loading audit logs...</div>
+          <div style={{ fontSize: '24px', animation: 'spin 1s linear infinite' }}>⏳</div>
+        </div>
+      ) : (
+        <>
       <div className="management-filters">
         <div className="search-box">
           <FaSearch className="search-icon" />
@@ -224,6 +247,8 @@ const AuditLogs = () => {
           </div>
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 };

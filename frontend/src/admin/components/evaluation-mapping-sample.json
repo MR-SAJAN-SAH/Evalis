@@ -1,0 +1,17 @@
+{
+  "evaluator1@company.com": [
+    "candidate1@company.com",
+    "candidate2@company.com",
+    "candidate3@company.com"
+  ],
+  "evaluator2@company.com": [
+    "candidate4@company.com",
+    "candidate5@company.com"
+  ],
+  "evaluator3@company.com": [
+    "candidate6@company.com",
+    "candidate7@company.com",
+    "candidate8@company.com",
+    "candidate9@company.com"
+  ]
+}

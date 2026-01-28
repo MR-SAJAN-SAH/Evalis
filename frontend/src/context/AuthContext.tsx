@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, type ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 
 interface AuthContextType {
   accessToken: string | null;
@@ -15,26 +15,48 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Use sessionStorage for tab-specific authentication instead of localStorage
-  // This ensures each tab maintains its own session independently
+  // Use sessionStorage only for tab-specific sessions
+  // This prevents cross-tab session conflicts
+  const getInitialValue = (key: string): string | null => {
+    try {
+      return sessionStorage.getItem(key);
+    } catch (e) {
+      console.warn(`Failed to read from sessionStorage: ${key}`);
+      return null;
+    }
+  };
+
   const [accessToken, setAccessToken] = useState<string | null>(
-    sessionStorage.getItem('accessToken')
+    getInitialValue('accessToken')
   );
   const [role, setRole] = useState<string | null>(
-    sessionStorage.getItem('role')
+    getInitialValue('role')
   );
   const [userEmail, setUserEmail] = useState<string | null>(
-    sessionStorage.getItem('userEmail')
+    getInitialValue('userEmail')
   );
   const [organizationName, setOrganizationName] = useState<string | null>(
-    sessionStorage.getItem('organizationName')
+    getInitialValue('organizationName')
   );
   const [subscriptionPlan, setSubscriptionPlan] = useState<string | null>(
-    sessionStorage.getItem('subscriptionPlan')
+    getInitialValue('subscriptionPlan')
   );
   const [userId, setUserId] = useState<string | null>(
-    sessionStorage.getItem('userId')
+    getInitialValue('userId')
   );
+
+  // Listen for storage events from other tabs (logout detection)
+  useEffect(() => {
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'accessToken' && event.newValue === null) {
+        // Another tab logged out, log out this tab too
+        logout();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   const login = (token: string, userRole: string, email: string, org?: string, plan?: string, uid?: string) => {
     setAccessToken(token);
@@ -44,13 +66,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (plan) setSubscriptionPlan(plan);
     if (uid) setUserId(uid);
 
-    // Store in sessionStorage for tab-specific authentication
-    sessionStorage.setItem('accessToken', token);
-    sessionStorage.setItem('role', userRole);
-    sessionStorage.setItem('userEmail', email);
-    if (org) sessionStorage.setItem('organizationName', org);
-    if (plan) sessionStorage.setItem('subscriptionPlan', plan);
-    if (uid) sessionStorage.setItem('userId', uid);
+    // Store ONLY in sessionStorage (tab-specific)
+    try {
+      sessionStorage.setItem('accessToken', token);
+      sessionStorage.setItem('role', userRole);
+      sessionStorage.setItem('userEmail', email);
+      if (org) sessionStorage.setItem('organizationName', org);
+      if (plan) sessionStorage.setItem('subscriptionPlan', plan);
+      if (uid) sessionStorage.setItem('userId', uid);
+    } catch (e) {
+      console.error('Failed to save auth data to sessionStorage:', e);
+    }
   };
 
   const logout = () => {
@@ -61,12 +87,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setSubscriptionPlan(null);
     setUserId(null);
 
-    sessionStorage.removeItem('accessToken');
-    sessionStorage.removeItem('role');
-    sessionStorage.removeItem('userEmail');
-    sessionStorage.removeItem('organizationName');
-    sessionStorage.removeItem('subscriptionPlan');
-    sessionStorage.removeItem('userId');
+    // Clear from sessionStorage only
+    try {
+      sessionStorage.removeItem('accessToken');
+      sessionStorage.removeItem('role');
+      sessionStorage.removeItem('userEmail');
+      sessionStorage.removeItem('organizationName');
+      sessionStorage.removeItem('subscriptionPlan');
+      sessionStorage.removeItem('userId');
+    } catch (e) {
+      console.error('Failed to clear auth data from sessionStorage:', e);
+    }
   };
 
   const isAuthenticated = !!accessToken;

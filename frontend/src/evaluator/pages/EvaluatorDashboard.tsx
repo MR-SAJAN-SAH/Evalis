@@ -11,6 +11,9 @@ import {
   FaChevronLeft, FaPercentage, FaTag, FaCalculator,
   FaShieldAlt, FaLightbulb, FaAward, FaThumbsUp
 } from 'react-icons/fa';
+import QuickNavigationPanel from '../components/QuickNavigationPanel';
+import StructuredComments from '../components/StructuredComments';
+import type { CommentType } from '../components/StructuredComments';
 import './EvaluatorDashboard.css';
 
 // Types
@@ -28,6 +31,7 @@ interface Answer {
   aiConfidence?: number;
   aiFeedback?: string;
   evaluatorComment?: string;
+  commentTypes?: CommentType[];
   isFlagged?: boolean;
   isReviewed?: boolean;
   submittedAt: string;
@@ -104,6 +108,13 @@ const EvaluatorDashboard = () => {
   const [itemsPerPage] = useState(10);
   const [autoSave, setAutoSave] = useState(true);
   const [enablePlagiarismCheck, setEnablePlagiarismCheck] = useState(true);
+  const [navPanelMinimized, setNavPanelMinimized] = useState(false);
+  const [selectedCommentTypes, setSelectedCommentTypes] = useState<CommentType[]>([]);
+  const [customCommentText, setCustomCommentText] = useState<string>('');
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [unevaluatedQuestions, setUnevaluatedQuestions] = useState<string[]>([]);
+  const [marksError, setMarksError] = useState<string>('');
+  const [pendingEvaluationSubmit, setPendingEvaluationSubmit] = useState(false);
 
   // Filter options
   const questionTypeOptions = [
@@ -135,6 +146,7 @@ const EvaluatorDashboard = () => {
       aiSuggestedMarks: 8,
       aiConfidence: 85,
       aiFeedback: 'Well-structured answer with good examples',
+      commentTypes: [],
       isReviewed: false,
       submittedAt: new Date().toISOString(),
       timeSpent: 300,
@@ -150,10 +162,13 @@ const EvaluatorDashboard = () => {
       questionText: 'Explain React and its benefits',
       questionType: 'DESCRIPTIVE',
       maxMarks: 10,
+      obtainedMarks: 8,
       aiSuggestedMarks: 9,
       aiConfidence: 90,
       aiFeedback: 'Comprehensive answer with practical examples',
-      isReviewed: false,
+      evaluatorComment: 'Good answer',
+      commentTypes: ['incomplete_answer'],
+      isReviewed: true,
       submittedAt: new Date().toISOString(),
       timeSpent: 420,
       similarityScore: 2,
@@ -251,6 +266,102 @@ const EvaluatorDashboard = () => {
     setEvaluationNote(answer.evaluatorComment || '');
   };
 
+  // Validation helper: Check if marks are valid
+  const isValidMarks = (marks: number, maxMarks: number): boolean => {
+    return marks >= 0 && marks <= maxMarks;
+  };
+
+  // Validation helper: Check decimal precision (0.5 increments only)
+  const isValidPrecision = (marks: number): boolean => {
+    const decimalPart = marks % 1;
+    return decimalPart === 0 || decimalPart === 0.5;
+  };
+
+  // Validation helper: Validate marks format
+  const validateMarks = (marks: number, maxMarks: number): { isValid: boolean; error: string } => {
+    if (marks < 0) {
+      return { isValid: false, error: 'Marks cannot be negative' };
+    }
+    if (marks > maxMarks) {
+      return { isValid: false, error: `Marks cannot exceed ${maxMarks}` };
+    }
+    if (!isValidPrecision(marks)) {
+      return { isValid: false, error: 'Marks must be in 0.5 increments (e.g., 5, 5.5, 6, 6.5)' };
+    }
+    return { isValid: true, error: '' };
+  };
+
+  // Check for unevaluated questions
+  const getUnevaluatedQuestions = (): string[] => {
+    return filteredAnswers
+      .filter(answer => !answer.isReviewed)
+      .map((answer, index) => `Q${index + 1} (${answer.candidateName})`)
+      .slice(0, 5); // Show first 5
+  };
+
+  // Marks input handler with validation
+  const handleMarksChange = (value: string) => {
+    const numValue = parseFloat(value);
+    if (!selectedAnswer) return;
+
+    if (isNaN(numValue)) {
+      setMarksError('Please enter a valid number');
+      return;
+    }
+
+    const validation = validateMarks(numValue, selectedAnswer.maxMarks);
+    if (!validation.isValid) {
+      setMarksError(validation.error);
+    } else {
+      setMarksError('');
+    }
+    setAssignedMarks(numValue);
+  };
+
+  // Marks slider handler with validation
+  const handleMarksSlider = (value: number) => {
+    if (!selectedAnswer) return;
+
+    const validation = validateMarks(value, selectedAnswer.maxMarks);
+    if (!validation.isValid) {
+      setMarksError(validation.error);
+    } else {
+      setMarksError('');
+    }
+    setAssignedMarks(value);
+  };
+
+  // Pre-submission validation and confirmation
+  const handleSubmitClick = async () => {
+    if (!selectedAnswer) return;
+
+    // Validate current answer marks
+    const validation = validateMarks(assignedMarks, selectedAnswer.maxMarks);
+    if (!validation.isValid) {
+      setMarksError(validation.error);
+      return;
+    }
+
+    // Check for unevaluated questions
+    const unevaluated = getUnevaluatedQuestions();
+    if (unevaluated.length > 0) {
+      setUnevaluatedQuestions(unevaluated);
+      setShowConfirmDialog(true);
+      setPendingEvaluationSubmit(true);
+      return;
+    }
+
+    // All good, proceed with evaluation
+    await evaluateAnswer();
+  };
+
+  // Confirm and proceed with submission despite unevaluated questions
+  const handleConfirmSubmit = async () => {
+    setShowConfirmDialog(false);
+    setPendingEvaluationSubmit(false);
+    await evaluateAnswer();
+  };
+
   // Evaluate answer
   const evaluateAnswer = async () => {
     if (!selectedAnswer) return;
@@ -259,15 +370,26 @@ const EvaluatorDashboard = () => {
     try {
       // Simulate API call
       setTimeout(() => {
+        // Combine comment types and custom text
+        const finalComment = customCommentText || evaluationNote;
+        
         setAnswers(prev => prev.map(a => 
           a.id === selectedAnswer.id 
-            ? { ...a, obtainedMarks: assignedMarks, evaluatorComment: evaluationNote, isReviewed: true }
+            ? { 
+                ...a, 
+                obtainedMarks: assignedMarks, 
+                evaluatorComment: finalComment, 
+                commentTypes: selectedCommentTypes,
+                isReviewed: true 
+              }
             : a
         ));
         setSelectedAnswer(null);
         setEvaluationNote('');
+        setCustomCommentText('');
+        setSelectedCommentTypes([]);
         setAssignedMarks(0);
-        alert('Answer evaluated successfully!');
+        alert('Answer evaluated successfully with structured comments!');
         setEvaluating(null);
       }, 500);
     } catch (error) {
@@ -874,7 +996,10 @@ const EvaluatorDashboard = () => {
               {/* Evaluation Controls */}
               <div className="evaluation-controls">
                 <div className="marks-control">
-                  <label>Assign Marks (0 - {selectedAnswer.maxMarks})</label>
+                  <div className="marks-label-row">
+                    <label>Assign Marks (0 - {selectedAnswer.maxMarks})</label>
+                    <span className="precision-hint">0.5 increments only</span>
+                  </div>
                   <div className="marks-input-group">
                     <input
                       type="range"
@@ -882,7 +1007,7 @@ const EvaluatorDashboard = () => {
                       max={selectedAnswer.maxMarks}
                       step="0.5"
                       value={assignedMarks}
-                      onChange={(e) => setAssignedMarks(parseFloat(e.target.value))}
+                      onChange={(e) => handleMarksSlider(parseFloat(e.target.value))}
                       className="marks-slider"
                     />
                     <input
@@ -891,11 +1016,18 @@ const EvaluatorDashboard = () => {
                       max={selectedAnswer.maxMarks}
                       step="0.5"
                       value={assignedMarks}
-                      onChange={(e) => setAssignedMarks(parseFloat(e.target.value))}
-                      className="marks-input"
+                      onChange={(e) => handleMarksChange(e.target.value)}
+                      className={`marks-input ${marksError ? 'error' : ''}`}
+                      placeholder="0"
                     />
                     <span className="max-marks-display">/{selectedAnswer.maxMarks}</span>
                   </div>
+                  {marksError && (
+                    <div className="marks-error">
+                      <span className="error-icon">⚠️</span>
+                      {marksError}
+                    </div>
+                  )}
                 </div>
 
                 <div className="feedback-control">
@@ -915,8 +1047,9 @@ const EvaluatorDashboard = () => {
                   </button>
                   <button
                     className="btn-submit-evaluation"
-                    onClick={evaluateAnswer}
-                    disabled={evaluating === selectedAnswer.id}
+                    onClick={handleSubmitClick}
+                    disabled={evaluating === selectedAnswer.id || !!marksError}
+                    title={marksError ? 'Fix marks error before submitting' : 'Submit evaluation'}
                   >
                     {evaluating === selectedAnswer.id ? (
                       <>
@@ -931,22 +1064,21 @@ const EvaluatorDashboard = () => {
                   </button>
                 </div>
               </div>
-
-              {/* Quick Templates */}
-              <div className="quick-templates">
-                <h6>Quick Comments:</h6>
-                <div className="template-buttons">
-                  <button onClick={() => setEvaluationNote('Well-structured answer with good examples.')}>
-                    Good Structure
-                  </button>
-                  <button onClick={() => setEvaluationNote('Needs more depth and specific examples.')}>
-                    Needs Depth
-                  </button>
-                  <button onClick={() => setEvaluationNote('Accurate and comprehensive answer.')}>
-                    Comprehensive
-                  </button>
-                </div>
-              </div>
+              {/* Structured Comments Component */}
+              <StructuredComments
+                selectedComments={selectedCommentTypes}
+                customComment={customCommentText}
+                onSelectComment={(type) => setSelectedCommentTypes([...selectedCommentTypes, type])}
+                onDeselectComment={(type) => setSelectedCommentTypes(selectedCommentTypes.filter(t => t !== type))}
+                onCustomCommentChange={setCustomCommentText}
+                onApplyComments={() => {
+                  // Comments are applied automatically when selected
+                  if (evaluationNote === '') {
+                    setEvaluationNote(customCommentText);
+                  }
+                }}
+                disabled={evaluating === selectedAnswer?.id}
+              />
             </div>
           ) : (
             <div className="empty-panel">
@@ -973,6 +1105,87 @@ const EvaluatorDashboard = () => {
           )}
         </div>
       </div>
+
+      {/* Quick Navigation Panel - Floating */}
+      <QuickNavigationPanel
+        questions={filteredAnswers.map((answer, index) => ({
+          id: answer.id,
+          number: index + 1,
+          candidateName: answer.candidateName,
+          status: answer.isFlagged ? 'flagged' : 
+                  answer.isReviewed && answer.evaluatorComment ? 'completed' :
+                  answer.isReviewed && !answer.evaluatorComment ? 'marked_no_comment' :
+                  'unattempted',
+          marks: answer.obtainedMarks,
+          maxMarks: answer.maxMarks
+        }))}
+        currentQuestionId={selectedAnswer?.id}
+        onSelectQuestion={(id) => {
+          const answer = filteredAnswers.find(a => a.id === id);
+          if (answer) handleSelectAnswer(answer);
+        }}
+        isMinimized={navPanelMinimized}
+        onToggleMinimize={() => setNavPanelMinimized(!navPanelMinimized)}
+      />
+
+      {/* Confirmation Dialog - Unevaluated Questions */}
+      {showConfirmDialog && (
+        <div className="confirmation-modal-overlay">
+          <div className="confirmation-modal">
+            <div className="modal-header">
+              <h2>⚠️ Incomplete Evaluation</h2>
+              <button 
+                className="close-btn"
+                onClick={() => {
+                  setShowConfirmDialog(false);
+                  setPendingEvaluationSubmit(false);
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <div className="warning-message">
+                <span className="warning-icon">⚠️</span>
+                <p>You have unevaluated questions remaining:</p>
+              </div>
+
+              <div className="unevaluated-list">
+                {unevaluatedQuestions.map((q, index) => (
+                  <div key={index} className="unevaluated-item">
+                    <span className="status-indicator">🔴</span>
+                    {q}
+                  </div>
+                ))}
+              </div>
+
+              <div className="modal-info">
+                <strong>Complete evaluation before proceeding?</strong>
+                <p>If you continue, these questions will remain marked as pending.</p>
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button
+                className="btn-cancel"
+                onClick={() => {
+                  setShowConfirmDialog(false);
+                  setPendingEvaluationSubmit(false);
+                }}
+              >
+                ✕ Go Back & Evaluate
+              </button>
+              <button
+                className="btn-proceed"
+                onClick={handleConfirmSubmit}
+              >
+                → Proceed Anyway
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Analytics Modal */}
       {showAnalytics && (

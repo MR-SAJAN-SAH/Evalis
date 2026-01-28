@@ -12,8 +12,8 @@ const apiClient: AxiosInstance = axios.create({
 
 // Add token to requests
 apiClient.interceptors.request.use((config) => {
-  // Try sessionStorage first (for logged-in state), then localStorage as fallback
-  const token = sessionStorage.getItem('accessToken') || localStorage.getItem('accessToken');
+  // Use sessionStorage only for tab-specific auth
+  const token = sessionStorage.getItem('accessToken');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

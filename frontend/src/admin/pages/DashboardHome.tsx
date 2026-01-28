@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import {
   FaUsers,
   FaClipboardCheck,
@@ -16,8 +17,9 @@ import {
 
 const DashboardHome = () => {
   const navigate = useNavigate();
+  const { accessToken } = useAuth();
   const [dashboardData, setDashboardData] = useState({
-    totalUsers: 12,
+    totalUsers: 0,
     activeExams: 5,
     pendingEvaluations: 8,
     systemHealth: 98,
@@ -26,6 +28,39 @@ const DashboardHome = () => {
     flaggedSessions: 2,
     storageUsed: '4.5 GB',
   });
+
+  const [debugInfo, setDebugInfo] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchTotalUsers = async () => {
+      try {
+        if (!accessToken) {
+          console.warn('No access token found');
+          return;
+        }
+
+        const response = await fetch('/api/users/total-count', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+          },
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setDashboardData(prev => ({
+            ...prev,
+            totalUsers: data.totalUsers || 0,
+          }));
+        }
+      } catch (error) {
+        console.error('Error fetching total users:', error);
+      }
+    };
+
+    fetchTotalUsers();
+  }, [accessToken]);
 
   const [recentActivity, setRecentActivity] = useState([
     {

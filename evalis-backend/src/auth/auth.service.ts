@@ -14,6 +14,7 @@ import {
   SuperAdminLoginDto,
   SubscriptionPlanEnum,
 } from '../superadmin/dto/superadmin.dto';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class AuthService {
@@ -32,6 +33,7 @@ export class AuthService {
     private userProfileRepository: Repository<UserProfile>,
     private jwtService: JwtService,
     private dataSource: DataSource,
+    private emailService: EmailService,
   ) {
     this.initializeSuperAdmin();
   }
@@ -335,29 +337,53 @@ export class AuthService {
   }
 
   async getUsersByOrganization(organizationName: string) {
-    const organization = await this.organizationRepository.findOne({
-      where: { name: organizationName.toUpperCase() },
-    });
+    try {
+      if (!organizationName || organizationName.trim() === '') {
+        throw new BadRequestException('Organization name is required');
+      }
 
-    if (!organization) {
-      throw new BadRequestException('Organization not found');
+      const organization = await this.organizationRepository.findOne({
+        where: { name: organizationName.toUpperCase() },
+      });
+
+      if (!organization) {
+        throw new BadRequestException('Organization not found');
+      }
+
+      const users = await this.userRepository.find({
+        where: { organizationId: organization.id },
+        order: { createdAt: 'DESC' },
+      });
+
+      console.log(`Found ${users.length} users for organization ${organizationName}`);
+
+      const mappedUsers = users.map((user) => {
+        if (!user.id) {
+          console.error('User without ID found:', user);
+        }
+        return {
+          id: user.id || '',
+          name: user.name || 'Unknown',
+          email: user.email || '',
+          role: user.role || 'User',
+          status: user.isActive ? 'Active' : 'Inactive',
+          createdAt: user.createdAt ? user.createdAt.toISOString().split('T')[0] : '',
+        };
+      });
+
+      console.log('Returning users:', mappedUsers);
+      return {
+        users: mappedUsers,
+      };
+    } catch (error: any) {
+      console.error('Error in getUsersByOrganization:', error);
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException(
+        `Failed to fetch users: ${error.message || 'Unknown error'}`,
+      );
     }
-
-    const users = await this.userRepository.find({
-      where: { organizationId: organization.id },
-      order: { createdAt: 'DESC' },
-    });
-
-    return {
-      users: users.map((user) => ({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        status: user.isActive ? 'Active' : 'Inactive',
-        createdAt: user.createdAt.toISOString().split('T')[0],
-      })),
-    };
   }
 
   async userLogin(email: string, password: string) {
@@ -402,62 +428,90 @@ export class AuthService {
   }
 
   async getUserProfile(userId: string) {
-    const user = await this.userRepository.findOne({
-      where: { id: userId },
-      relations: ['profile'],
-    });
+    try {
+      if (!userId || userId.trim() === '') {
+        throw new BadRequestException('Invalid user ID');
+      }
 
-    if (!user) {
-      throw new BadRequestException('User not found');
-    }
-
-    // If profile doesn't exist, create an empty one
-    let profile = user.profile;
-    if (!profile) {
-      profile = this.userProfileRepository.create({
-        userId: userId,
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+        relations: ['profile'],
       });
-      await this.userProfileRepository.save(profile);
-    }
 
-    return {
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        isActive: user.isActive,
-        createdAt: user.createdAt,
-      },
-      profile: profile,
-    };
+      if (!user) {
+        throw new BadRequestException('User not found');
+      }
+
+      // If profile doesn't exist, create an empty one
+      let profile = user.profile;
+      if (!profile) {
+        profile = this.userProfileRepository.create({
+          userId: userId,
+        });
+        await this.userProfileRepository.save(profile);
+      }
+
+      return {
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          isActive: user.isActive,
+          createdAt: user.createdAt,
+        },
+        profile: profile,
+      };
+    } catch (error: any) {
+      console.error('Error fetching user profile:', error);
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException(
+        `Failed to fetch user profile: ${error.message || 'Unknown error'}`,
+      );
+    }
   }
 
   async updateUserProfile(userId: string, profileData: any) {
-    const user = await this.userRepository.findOne({
-      where: { id: userId },
-      relations: ['profile'],
-    });
+    try {
+      if (!userId || userId.trim() === '') {
+        throw new BadRequestException('Invalid user ID');
+      }
 
-    if (!user) {
-      throw new BadRequestException('User not found');
-    }
-
-    let profile = user.profile;
-    if (!profile) {
-      profile = this.userProfileRepository.create({
-        userId: userId,
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+        relations: ['profile'],
       });
+
+      if (!user) {
+        throw new BadRequestException('User not found');
+      }
+
+      let profile = user.profile;
+      if (!profile) {
+        profile = this.userProfileRepository.create({
+          userId: userId,
+        });
+      }
+
+      // Update profile with new data
+      Object.assign(profile, profileData);
+      await this.userProfileRepository.save(profile);
+
+      return {
+        message: 'User profile updated successfully',
+        profile: profile,
+      };
+    } catch (error: any) {
+      console.error('Error updating user profile:', error);
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException(
+        `Failed to update user profile: ${error.message || 'Unknown error'}`,
+      );
     }
-
-    // Update profile with new data
-    Object.assign(profile, profileData);
-    await this.userProfileRepository.save(profile);
-
-    return {
-      message: 'User profile updated successfully',
-      profile: profile,
-    };
   }
 
   async getUserById(userId: string) {
@@ -480,4 +534,80 @@ export class AuthService {
       profile: user.profile || null,
     };
   }
+
+  async getAdminProfile(adminId: string) {
+    try {
+      if (!adminId || adminId.trim() === '') {
+        throw new BadRequestException('Admin ID is required');
+      }
+
+      const admin = await this.adminRepository.findOne({
+        where: { id: adminId },
+      });
+
+      if (!admin) {
+        throw new BadRequestException('Admin not found');
+      }
+
+      return {
+        id: admin.id,
+        name: admin.name,
+        email: admin.email,
+        createdAt: admin.createdAt,
+        profileUrl: admin.profileUrl || null,
+      };
+    } catch (error: any) {
+      console.error('Error fetching admin profile:', error);
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException(
+        `Failed to fetch admin profile: ${error.message || 'Unknown error'}`,
+      );
+    }
+  }
+
+  async updateAdminProfile(adminId: string, profileData: any) {
+    try {
+      if (!adminId || adminId.trim() === '') {
+        throw new BadRequestException('Admin ID is required');
+      }
+
+      const admin = await this.adminRepository.findOne({
+        where: { id: adminId },
+      });
+
+      if (!admin) {
+        throw new BadRequestException('Admin not found');
+      }
+
+      // Update admin with new data (profileUrl, etc.)
+      if (profileData.profileUrl) {
+        admin.profileUrl = profileData.profileUrl;
+      }
+
+      const updatedAdmin = await this.adminRepository.save(admin);
+
+      console.log(`Admin profile updated for ${adminId}:`, updatedAdmin);
+
+      return {
+        message: 'Admin profile updated successfully',
+        admin: {
+          id: updatedAdmin.id,
+          name: updatedAdmin.name,
+          email: updatedAdmin.email,
+          profileUrl: updatedAdmin.profileUrl || null,
+        },
+      };
+    } catch (error: any) {
+      console.error('Error updating admin profile:', error);
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException(
+        `Failed to update admin profile: ${error.message || 'Unknown error'}`,
+      );
+    }
+  }
 }
+

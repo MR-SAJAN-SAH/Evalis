@@ -16,6 +16,9 @@ export class Admin {
   @Column({ type: 'varchar' })
   password: string; // Should be hashed
 
+  @Column({ type: 'varchar', nullable: true })
+  profileUrl: string; // Profile image URL
+
   @ManyToOne(() => SubscriptionPlan, (plan) => plan.admins)
   subscriptionPlan: SubscriptionPlan;
 

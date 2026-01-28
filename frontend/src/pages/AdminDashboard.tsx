@@ -78,11 +78,11 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('role');
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('organizationName');
-    localStorage.removeItem('subscriptionPlan');
+    sessionStorage.removeItem('accessToken');
+    sessionStorage.removeItem('role');
+    sessionStorage.removeItem('userEmail');
+    sessionStorage.removeItem('organizationName');
+    sessionStorage.removeItem('subscriptionPlan');
     navigate('/');
   };
 

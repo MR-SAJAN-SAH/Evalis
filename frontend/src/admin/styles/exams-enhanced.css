@@ -402,9 +402,16 @@
   color: #f59e0b;
 }
 
-.btn-icon.edit:hover {
+.btn-icon.edit:hover:not(:disabled) {
   background: #fffbeb;
   border-color: #f59e0b;
+}
+
+.btn-icon.edit:disabled {
+  color: #d1d5db;
+  cursor: not-allowed;
+  border-color: #e5e7eb;
+  opacity: 0.6;
 }
 
 .btn-icon.delete {

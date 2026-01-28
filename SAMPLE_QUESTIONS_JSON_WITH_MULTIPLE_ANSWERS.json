@@ -1,0 +1,100 @@
+{
+  "questions": [
+    {
+      "questionText": "What is the primary function of the CPU in a computer?",
+      "questionType": "MCQ",
+      "marks": 1,
+      "difficultyLevel": "EASY",
+      "optionA": "To store data permanently",
+      "optionB": "To execute instructions and perform calculations",
+      "optionC": "To display information on screen",
+      "optionD": "To manage network connections",
+      "correctAnswer": "B",
+      "correctAnswerExplanation": "The CPU (Central Processing Unit) is the brain of the computer that executes instructions and performs calculations."
+    },
+    {
+      "questionText": "Select all components that are part of a computer's RAM:",
+      "questionType": "MCQ",
+      "marks": 2,
+      "difficultyLevel": "MEDIUM",
+      "optionA": "Memory modules",
+      "optionB": "Hard disk drive",
+      "optionC": "Cache memory",
+      "optionD": "SSD storage",
+      "correctAnswers": ["A", "C"],
+      "correctAnswerExplanation": "RAM includes memory modules and cache memory. Hard disk drives and SSDs are storage devices, not part of RAM. Full marks only if both A and C are selected."
+    },
+    {
+      "questionText": "Which of the following are programming paradigms?",
+      "questionType": "MCQ",
+      "marks": 2,
+      "difficultyLevel": "HARD",
+      "optionA": "Object-Oriented Programming",
+      "optionB": "Dynamic Programming",
+      "optionC": "Functional Programming",
+      "optionD": "Procedural Programming",
+      "correctAnswers": ["A", "C", "D"],
+      "correctAnswerExplanation": "Object-Oriented, Functional, and Procedural are programming paradigms. Dynamic Programming is an algorithm optimization technique, not a paradigm."
+    },
+    {
+      "questionText": "What is the time complexity of binary search?",
+      "questionType": "MCQ",
+      "marks": 1,
+      "difficultyLevel": "MEDIUM",
+      "optionA": "O(n)",
+      "optionB": "O(n log n)",
+      "optionC": "O(log n)",
+      "optionD": "O(n²)",
+      "correctAnswer": "C",
+      "correctAnswerExplanation": "Binary search has a time complexity of O(log n) because it divides the search space in half with each comparison."
+    },
+    {
+      "questionText": "Select all relational database management systems:",
+      "questionType": "MCQ",
+      "marks": 2,
+      "difficultyLevel": "MEDIUM",
+      "optionA": "MySQL",
+      "optionB": "MongoDB",
+      "optionC": "PostgreSQL",
+      "optionD": "Oracle Database",
+      "correctAnswers": ["A", "C", "D"],
+      "correctAnswerExplanation": "MySQL, PostgreSQL, and Oracle Database are relational databases. MongoDB is a NoSQL document-oriented database."
+    },
+    {
+      "questionText": "What does the HTTP GET method do?",
+      "questionType": "MCQ",
+      "marks": 1,
+      "difficultyLevel": "EASY",
+      "optionA": "Retrieves data from the server",
+      "optionB": "Sends data to the server for processing",
+      "optionC": "Deletes data on the server",
+      "optionD": "Updates existing data on the server",
+      "correctAnswer": "A",
+      "correctAnswerExplanation": "The GET method is used to retrieve data from the server. It's a safe method that shouldn't modify server state."
+    },
+    {
+      "questionText": "Select all that are JavaScript frameworks for front-end development:",
+      "questionType": "MCQ",
+      "marks": 2,
+      "difficultyLevel": "MEDIUM",
+      "optionA": "React",
+      "optionB": "Express.js",
+      "optionC": "Vue.js",
+      "optionD": "Angular",
+      "correctAnswers": ["A", "C", "D"],
+      "correctAnswerExplanation": "React, Vue.js, and Angular are front-end frameworks. Express.js is a Node.js backend framework for building server-side applications."
+    },
+    {
+      "questionText": "Which sorting algorithm has the best average-case time complexity?",
+      "questionType": "MCQ",
+      "marks": 2,
+      "difficultyLevel": "HARD",
+      "optionA": "Bubble Sort",
+      "optionB": "Merge Sort",
+      "optionC": "Quick Sort",
+      "optionD": "Selection Sort",
+      "correctAnswers": ["B", "C"],
+      "correctAnswerExplanation": "Both Merge Sort and Quick Sort have O(n log n) average-case time complexity. Bubble and Selection Sort have O(n²) complexity. Both B and C must be selected for full marks."
+    }
+  ]
+}

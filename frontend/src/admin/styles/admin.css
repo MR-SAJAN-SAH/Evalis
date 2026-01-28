@@ -341,6 +341,9 @@ body {
 .nav-section {
   padding: var(--spacing-base) 0;
   border-bottom: 1px solid var(--gray-200);
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 .nav-section:last-child {
@@ -415,6 +418,8 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
+  display: block;
 }
 
 .profile-avatar-fallback-top {
@@ -428,6 +433,9 @@ body {
   color: white;
   background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
   opacity: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
 .profile-avatar-fallback-top.visible {
@@ -1090,11 +1098,11 @@ button:active, .btn:active {
 }
 
 .nav-link {
-  display: flex;
-  align-items: center;
+  display: flex !important;
+  align-items: center !important;
   gap: var(--spacing-base);
-  padding: 10px var(--spacing-base);
-  color: var(--gray-600);
+  padding: 10px var(--spacing-base) !important;
+  color: var(--gray-600) !important;
   text-decoration: none;
   border-left: 2px solid transparent;
   transition: background-color 150ms ease, color 150ms ease;
@@ -1104,7 +1112,10 @@ button:active, .btn:active {
   border-radius: 0 var(--rounded-md) var(--rounded-md) 0;
   cursor: pointer;
   position: relative;
-  white-space: nowrap;
+  white-space: normal;
+  min-height: 40px;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 .nav-link:hover {
@@ -1241,4 +1252,117 @@ button:active, .btn:active {
 
 .mb-lg {
   margin-bottom: var(--spacing-lg);
+}
+/* ═══════════════════════════════════════════════════════════════════════════════
+   SUBMISSIONS MODAL STYLES
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  width: 100%;
+  height: 100%;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  max-width: 98vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.submissions-modal {
+  width: 90vw !important;
+  min-width: 90vw !important;
+  max-width: 90vw !important;
+  max-height: 90vh !important;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #999;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: #f5f5f5;
+  color: #333;
+}
+
+.modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+  max-height: calc(90vh - 80px);
+}
+
+.submissions-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.submissions-table th {
+  background: #f8f9fa;
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid #ddd;
+}
+
+.submissions-table td {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.submissions-table tr:hover {
+  background: #f8f9fa;
+}
+
+.spinner-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
