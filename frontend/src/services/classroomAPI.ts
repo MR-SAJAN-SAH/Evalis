@@ -96,7 +96,9 @@ interface ClassroomAPIInterface {
   getClassroomStudents(classroomId: string): Promise<{ success: boolean; data: any[]; message: string }>;
   debugGetTeacherClassrooms(): Promise<{ success: boolean; data: any[]; message: string }>;
   uploadMaterial(classroomId: string, formData: FormData): Promise<{ success: boolean; data: any; message: string }>;
-  getClassroomEnrollments(classroomId: string): Promise<{ success: boolean; data: any; message: string }>;
+  getClassroomEnrollments(classroomId: string): Promise<{ success: boolean; data: any[] }>;
+  getClassroomInvitations(classroomId: string): Promise<{ success: boolean; data: ClassroomInvitation[] }>;
+  inviteCandidates(classroomId: string, emails: string[], message?: string): Promise<{ success: boolean; data: ClassroomInvitation[]; message: string }>;
 }
 
 // Teacher Classroom API
