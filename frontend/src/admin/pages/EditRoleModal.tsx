@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Role, Permission } from '../types/roleTypes';
+import type { Role, Permission } from '../types/roleTypes';
 import './EditRoleModal.css';
 
 interface Props {

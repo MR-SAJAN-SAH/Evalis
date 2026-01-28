@@ -5,16 +5,8 @@ import EditRoleModal from './EditRoleModal';
 import RoleCards from './RoleCards';
 import PermissionsMatrix from './PermissionsMatrix';
 import CustomRolesList from './CustomRolesList';
-import { Role, Permission } from '../types/roleTypes';
+import type { Role, Permission } from '../types/roleTypes';
 import './RoleManagement.css';
-
-interface Permission {
-  id: string;
-  name: string;
-  module: string;
-  action: string;
-  description: string;
-}
 
 const RoleManagement: React.FC = () => {
   const { userId, accessToken } = useAuth();

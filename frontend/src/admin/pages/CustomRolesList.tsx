@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Role } from '../types/roleTypes';
+import type { Role } from '../types/roleTypes';
 import './CustomRolesList.css';
 
 interface Props {

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Role, Permission } from '../types/roleTypes';
+import type { Role, Permission } from '../types/roleTypes';
 import './PermissionsMatrix.css';
 
 interface Props {
