@@ -25,7 +25,7 @@ interface Permission {
 }
 
 const RoleManagement: React.FC = () => {
-  const { user, token } = useAuth();
+  const { userId, accessToken } = useAuth();
   const [roles, setRoles] = useState<Role[]>([]);
   const [permissions, setPermissions] = useState<Record<string, Permission[]>>({});
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
@@ -38,7 +38,7 @@ const RoleManagement: React.FC = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const headers = { Authorization: `Bearer ${token}` };
+      const headers = { Authorization: `Bearer ${accessToken}` };
 
       const [rolesRes, permsRes] = await Promise.all([
         fetch('http://localhost:3001/api/roles', { headers }),
@@ -63,7 +63,7 @@ const RoleManagement: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-  }, [token]);
+  }, [accessToken]);
 
   const handleCreateRole = async (data: { name: string; description: string; permissionIds: string[] }) => {
     try {
@@ -71,7 +71,7 @@ const RoleManagement: React.FC = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify(data),
       });
@@ -91,7 +91,7 @@ const RoleManagement: React.FC = () => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify(data),
       });
@@ -111,7 +111,7 @@ const RoleManagement: React.FC = () => {
       try {
         const response = await fetch(`http://localhost:3001/api/roles/${roleId}`, {
           method: 'DELETE',
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${accessToken}` },
         });
 
         if (response.ok) {
@@ -184,7 +184,7 @@ const RoleManagement: React.FC = () => {
         {activeTab === 'custom' && (
           <CustomRolesList
             roles={customRoles}
-            onEdit={(role) => {
+            onEdit={(role: Role) => {
               setSelectedRole(role);
               setShowEditModal(true);
             }}

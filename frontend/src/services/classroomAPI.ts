@@ -64,6 +64,8 @@ export interface Announcement {
     tags?: string[];
     allowComments?: boolean;
     requiresAck?: boolean;
+    comments?: Array<{ userName: string; text: string; createdAt: string }>;
+    likes?: number;
   };
   createdAt: string;
   updatedAt: string;
@@ -315,23 +317,6 @@ export const announcementAPI = {
   async debugGetTeacherClassrooms(): Promise<{ success: boolean; data: any[]; message: string }> {
     const response = await apiClient.get(
       `/api/teacher/announcements/debug/classrooms`
-    );
-    return response.data;
-  },
-
-  // Like announcement
-  async likeAnnouncement(announcementId: string): Promise<{ success: boolean; data: Announcement; message: string }> {
-    const response = await apiClient.post(
-      `/api/teacher/announcements/${announcementId}/like`
-    );
-    return response.data;
-  },
-
-  // Add comment
-  async addComment(announcementId: string, comment: string): Promise<{ success: boolean; data: Announcement; message: string }> {
-    const response = await apiClient.post(
-      `/api/teacher/announcements/${announcementId}/comment`,
-      { comment }
     );
     return response.data;
   },

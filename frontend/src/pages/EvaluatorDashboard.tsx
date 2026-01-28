@@ -142,7 +142,7 @@ const EvaluatorDashboard: React.FC = () => {
     newQuestionsData[questionIdx].subMarks[subQ] = newValue;
     
     // Sum sub-question marks for main question
-    const totalSubMarks = Object.values(newQuestionsData[questionIdx].subMarks).reduce((a: any, b: any) => (a || 0) + (b || 0), 0);
+    const totalSubMarks = Object.values(newQuestionsData[questionIdx].subMarks).reduce((a: number, b: any) => (a || 0) + (b || 0), 0) as number;
     
     // Cap total at maxMarks
     newQuestionsData[questionIdx].marks = Math.min(totalSubMarks, maxMarks);

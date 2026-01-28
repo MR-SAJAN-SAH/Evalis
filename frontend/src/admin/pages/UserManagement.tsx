@@ -411,7 +411,10 @@ const UserManagement = () => {
       )}
 
       {showGetDetailsModal && (
-        <GetUserDetailsModal onClose={() => setShowGetDetailsModal(false)} />
+        <GetUserDetailsModal 
+          organizationId={organizationName || ''}
+          onClose={() => setShowGetDetailsModal(false)} 
+        />
       )}
 
       <SendEmailModal

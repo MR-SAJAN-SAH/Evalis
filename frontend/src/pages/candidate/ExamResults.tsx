@@ -338,7 +338,7 @@ const ExamResults: React.FC = () => {
                           <span>Not Answered</span>
                         </div>
                       )}
-                      {(question.correctAnswers?.length > 0 || question.correctAnswer) && (
+                      {(question.correctAnswers && question.correctAnswers.length > 0 || question.correctAnswer) && (
                         <div className="correct-answer">
                           <strong>Correct Answer:</strong> 
                           <span>
