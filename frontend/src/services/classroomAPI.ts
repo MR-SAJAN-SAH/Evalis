@@ -103,7 +103,7 @@ interface ClassroomAPIInterface {
 }
 
 // Teacher Classroom API
-export const classroomAPI: ClassroomAPIInterface = {
+export const classroomAPI = {
   // Create classroom
   async createClassroom(data: {
     name: string;
