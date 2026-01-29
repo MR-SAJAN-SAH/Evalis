@@ -16,8 +16,20 @@ import {
   FaClock,
   FaUser,
 } from 'react-icons/fa';
-import type { Announcement } from '../services/classroomAPI';
 import './AnnouncementFeed.css';
+
+interface Announcement {
+  id: string;
+  title: string;
+  content: string;
+  coverImage?: string;
+  attachments?: any[];
+  likes?: number;
+  comments?: number;
+  createdAt?: Date | string;
+  isPinned?: boolean;
+  metadata?: any;
+}
 
 interface AnnouncementFeedProps {
   announcements: Announcement[];
@@ -183,11 +195,11 @@ const AnnouncementFeed: React.FC<AnnouncementFeedProps> = ({
             {/* Header */}
             <div className="announcement-header">
               <div className="author-info">
-                <div className="author-avatar">{announcement.teacherName.charAt(0)}</div>
+                <div className="author-avatar">{(announcement as any).teacherName?.charAt(0) || 'T'}</div>
                 <div>
-                  <h4 className="author-name">{announcement.teacherName}</h4>
+                  <h4 className="author-name">{(announcement as any).teacherName || 'Teacher'}</h4>
                   <p className="post-time">
-                    <FaClock /> {formatDate(announcement.createdAt)}
+                    <FaClock /> {announcement.createdAt instanceof Date ? announcement.createdAt.toLocaleDateString() : (announcement.createdAt as any)}
                   </p>
                 </div>
               </div>
@@ -236,14 +248,14 @@ const AnnouncementFeed: React.FC<AnnouncementFeedProps> = ({
             {/* Content */}
             <div
               className={`announcement-content ${expandedId === announcement.id ? 'expanded' : ''}`}
-              dangerouslySetInnerHTML={{ __html: announcement.contentHtml || announcement.content }}
+              dangerouslySetInnerHTML={{ __html: announcement.content }}
             />
 
             {/* Media Gallery */}
             {announcement.attachments && announcement.attachments.length > 0 && (
               <div className="media-gallery">
                 <div className="gallery-grid">
-                  {announcement.attachments.map(attachment => (
+                  {announcement.attachments.map((attachment: any) => (
                     <div
                       key={attachment.id}
                       className="gallery-item"
@@ -266,10 +278,10 @@ const AnnouncementFeed: React.FC<AnnouncementFeedProps> = ({
 
             {/* Interaction Stats */}
             <div className="announcement-stats">
-              <span className="view-count">👁️ {announcement.viewCount} views</span>
+              <span className="view-count">👁️ {(announcement as any).viewCount || 0} views</span>
               {announcement.metadata?.tags && announcement.metadata.tags.length > 0 && (
                 <div className="tags">
-                  {announcement.metadata.tags.map((tag, idx) => (
+                  {announcement.metadata.tags.map((tag: string, idx: number) => (
                     <span key={idx} className="tag">
                       #{tag}
                     </span>

@@ -20,7 +20,6 @@ import AuditLogs from './admin/pages/AuditLogs'
 import LiveProctoring from './admin/pages/LiveProctoring'
 import SystemSettings from './admin/pages/SystemSettings'
 import RoleManagement from './admin/pages/RoleManagement'
-import EvaluatorDashboardV2 from './evaluator/pages/EvaluatorDashboardV2'
 import EvaluatorDashboard from './pages/EvaluatorDashboard'
 import TeacherDashboard from './evaluator/pages/TeacherDashboard'
 import ExamControllerDashboard from './pages/ExamControllerDashboard'
@@ -28,7 +27,6 @@ import CandidateDashboard from './pages/candidate/CandidateDashboard'
 import ExamTaking from './pages/candidate/ExamTaking'
 import ExamResults from './pages/candidate/ExamResults'
 import ProgrammingExamTaking from './pages/candidate/ProgrammingExamTaking'
-import AdvancedClassroom from './pages/candidate/AdvancedClassroom'
 import ProtectedRoute from './components/ProtectedRoute'
 import './App.css'
 
@@ -41,11 +39,11 @@ function AppContent() {
       <Route path="/superadmin/login" element={<SuperAdminLoginPage />} />
       
       {/* User Dashboards */}
-      <Route path="/evaluator/dashboard" element={<EvaluatorDashboardV2 />} />
+      <Route path="/evaluator/dashboard" element={<EvaluatorDashboard />} />
       <Route path="/evaluator/dashboard/evaluations" element={<EvaluatorDashboard />} />
-      <Route path="/evaluator/dashboard/classroom" element={<EvaluatorDashboardV2 />} />
-      <Route path="/evaluator/dashboard/analytics" element={<EvaluatorDashboardV2 />} />
-      <Route path="/evaluator/dashboard/chat" element={<EvaluatorDashboardV2 />} />
+      <Route path="/evaluator/dashboard/classroom" element={<EvaluatorDashboard />} />
+      <Route path="/evaluator/dashboard/analytics" element={<EvaluatorDashboard />} />
+      <Route path="/evaluator/dashboard/chat" element={<EvaluatorDashboard />} />
       <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
       <Route path="/exam-controller/dashboard" element={<ExamControllerDashboard />} />
       <Route path="/exam-controller/dashboard/exams" element={<ExamControllerDashboard />} />
@@ -66,26 +64,6 @@ function AppContent() {
       <Route path="/exam/:examId/results" element={<ProtectedRoute requiredRole="candidate"><ExamResults /></ProtectedRoute>} />
       <Route path="/candidate/exam/:examId/programming" element={<ProtectedRoute requiredRole="candidate"><ProgrammingExamTaking /></ProtectedRoute>} />
       
-      {/* Candidate Classroom Routes with Section-specific paths */}
-      <Route path="/candidate/classroom/:classroomId" element={<ProtectedRoute><AdvancedClassroom /></ProtectedRoute>} />
-      <Route path="/candidate/classroom/:classroomId/stream" element={<ProtectedRoute><AdvancedClassroom /></ProtectedRoute>} />
-      <Route path="/candidate/classroom/:classroomId/materials" element={<ProtectedRoute><AdvancedClassroom /></ProtectedRoute>} />
-      <Route path="/candidate/classroom/:classroomId/classwork" element={<ProtectedRoute><AdvancedClassroom /></ProtectedRoute>} />
-      <Route path="/candidate/classroom/:classroomId/exams" element={<ProtectedRoute><AdvancedClassroom /></ProtectedRoute>} />
-      <Route path="/candidate/classroom/:classroomId/grades" element={<ProtectedRoute><AdvancedClassroom /></ProtectedRoute>} />
-      <Route path="/candidate/classroom/:classroomId/analytics" element={<ProtectedRoute><AdvancedClassroom /></ProtectedRoute>} />
-      <Route path="/candidate/classroom/:classroomId/people" element={<ProtectedRoute><AdvancedClassroom /></ProtectedRoute>} />
-      <Route path="/candidate/classroom/:classroomId/settings" element={<ProtectedRoute><AdvancedClassroom /></ProtectedRoute>} />
-      
-      {/* Evaluator Classroom Routes with Section-specific paths */}
-      <Route path="/evaluator/classroom/:classroomId" element={<ProtectedRoute><AdvancedClassroom /></ProtectedRoute>} />
-      <Route path="/evaluator/classroom/:classroomId/stream" element={<ProtectedRoute><AdvancedClassroom /></ProtectedRoute>} />
-      <Route path="/evaluator/classroom/:classroomId/materials" element={<ProtectedRoute><AdvancedClassroom /></ProtectedRoute>} />
-      <Route path="/evaluator/classroom/:classroomId/classwork" element={<ProtectedRoute><AdvancedClassroom /></ProtectedRoute>} />
-      <Route path="/evaluator/classroom/:classroomId/exams" element={<ProtectedRoute><AdvancedClassroom /></ProtectedRoute>} />
-      <Route path="/evaluator/classroom/:classroomId/analytics" element={<ProtectedRoute><AdvancedClassroom /></ProtectedRoute>} />
-      <Route path="/evaluator/classroom/:classroomId/people" element={<ProtectedRoute><AdvancedClassroom /></ProtectedRoute>} />
-      <Route path="/evaluator/classroom/:classroomId/settings" element={<ProtectedRoute><AdvancedClassroom /></ProtectedRoute>} />
       {/* Admin Dashboard Routes */}
       <Route
         path="/admin/*"

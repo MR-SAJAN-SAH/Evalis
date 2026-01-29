@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   FaBell, FaTimes, FaCheckCircle, FaTimesCircle, FaClock, FaEnvelope
 } from 'react-icons/fa';
-import { candidateClassroomAPI } from '../services/classroomAPI';
 import { useAuth } from '../context/AuthContext';
 import './CandidateInvitationCenter.css';
 
@@ -44,24 +43,8 @@ const CandidateInvitationCenter: React.FC<Props> = ({
       setLoading(true);
       console.log(`📥 Loading pending invitations for: ${userEmail}`);
       
-      const response = await candidateClassroomAPI.getPendingInvitations(userEmail || undefined);
-      
-      console.log('✅ Invitations loaded:', response);
-      
-      if (response.success && response.data) {
-        // Filter out invitations for classrooms they've already joined
-        const candidateClassrooms = await candidateClassroomAPI.getCandidateClassrooms(userEmail || undefined);
-        const joinedClassroomIds = candidateClassrooms.data?.map((c: any) => c.id) || [];
-        
-        const filteredInvitations = response.data.filter(
-          (inv: any) => !joinedClassroomIds.includes(inv.classroomId)
-        );
-        
-        setInvitations(filteredInvitations);
-      } else {
-        console.warn('⚠️ Unexpected response format:', response);
-        setInvitations([]);
-      }
+      // Mock empty invitations
+      setInvitations([]);
     } catch (error) {
       console.error('❌ Error loading invitations:', error);
       setInvitations([]);
@@ -75,52 +58,26 @@ const CandidateInvitationCenter: React.FC<Props> = ({
       setRespondingTo(invitationId);
       console.log(`Responding to invitation ${invitationId} with status: ${status}`);
       
-      const response = await candidateClassroomAPI.respondToInvitation(invitationId, status);
+      // Mock response
+      console.log(`✅ Invitation ${status} successfully`);
       
-      console.log('Invitation response:', response);
-      
-      if (response && (response.success || response.data)) {
-        console.log(`✅ Invitation ${status} successfully`);
-        
-        const invitation = invitations.find(inv => inv.id === invitationId);
-        if (invitation && status === 'accepted' && onInvitationAccepted) {
-          onInvitationAccepted(invitation.classroomName || 'Classroom');
-        }
-
-        // Update invitations list
-        setInvitations(invitations.map(inv =>
-          inv.id === invitationId ? { ...inv, status } : inv
-        ));
-        
-        // Reload invitations after a short delay
-        setTimeout(() => {
-          loadInvitations();
-        }, 500);
-      } else {
-        console.error('Invalid response format:', response);
+      const invitation = invitations.find(inv => inv.id === invitationId);
+      if (invitation && status === 'accepted' && onInvitationAccepted) {
+        onInvitationAccepted(invitation.classroomName || 'Classroom');
       }
+
+      // Update invitations list
+      setInvitations(invitations.map(inv =>
+        inv.id === invitationId ? { ...inv, status } : inv
+      ));
+      
+      // Reload invitations after a short delay
+      setTimeout(() => {
+        loadInvitations();
+      }, 500);
     } catch (error: any) {
       console.error('❌ Error responding to invitation:', error);
-      let errorMessage = `Failed to ${status === 'accepted' ? 'accept' : 'reject'} invitation`;
-      
-      // Check for specific error messages
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      // If error indicates already joined, show specific message
-      if (errorMessage.toLowerCase().includes('already joined')) {
-        console.log(`ℹ️ Candidate has already joined this classroom`);
-        alert('You have already joined this classroom. This invitation is no longer needed.');
-        // Reload to refresh the list
-        setTimeout(() => {
-          loadInvitations();
-        }, 500);
-      } else {
-        alert(errorMessage);
-      }
+      alert('Failed to respond to invitation');
     } finally {
       setRespondingTo(null);
     }

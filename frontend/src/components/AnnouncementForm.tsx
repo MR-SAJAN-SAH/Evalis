@@ -15,9 +15,16 @@ import {
   FaClock,
   FaStar,
 } from 'react-icons/fa';
-import { announcementAPI } from '../services/classroomAPI';
-import type { AnnouncementAttachment } from '../services/classroomAPI';
 import './AnnouncementForm.css';
+
+interface AnnouncementAttachment {
+  id: string;
+  name: string;
+  url: string;
+  type: 'image' | 'video' | 'document' | 'audio';
+  mimeType: string;
+  size?: number;
+}
 
 interface AnnouncementFormProps {
   classroomId: string;
@@ -33,83 +40,27 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [attachments, setAttachments] = useState<AnnouncementAttachment[]>([]);
-  const [coverImage, setCoverImage] = useState<AnnouncementAttachment | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [priority, setPriority] = useState<'normal' | 'high' | 'urgent'>('normal');
-  const [requiresAck, setRequiresAck] = useState(false);
-  const [isDraft, setIsDraft] = useState(false);
-  const [scheduledFor, setScheduledFor] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const imageInputRef = useRef<HTMLInputElement>(null);
-  const videoInputRef = useRef<HTMLInputElement>(null);
-  const documentInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = async (file: File) => {
     try {
-      setIsLoading(true);
-      console.log(`📤 Uploading file: ${file.name}`);
-
-      const response = await announcementAPI.uploadFile(file, classroomId);
-
-      if (response.success && response.data) {
-        const attachment = response.data;
-        // Ensure all required fields are present
-        const completeAttachment: AnnouncementAttachment = {
-          id: attachment.id || '',
-          name: attachment.name || file.name,
-          url: attachment.url || '',
-          type: attachment.type as any || 'document',
-          mimeType: attachment.mimeType || file.type || 'application/octet-stream',
-          size: attachment.size || file.size,
-          uploadedAt: attachment.uploadedAt ? new Date(attachment.uploadedAt) : new Date(),
-        };
-        setAttachments([...attachments, completeAttachment]);
-        console.log(`✅ File uploaded:`, completeAttachment);
-      }
+      const attachment: AnnouncementAttachment = {
+        id: Math.random().toString(36).substr(2, 9),
+        name: file.name,
+        url: URL.createObjectURL(file),
+        type: 'document',
+        mimeType: file.type,
+        size: file.size,
+      };
+      setAttachments([...attachments, attachment]);
     } catch (error) {
-      console.error('❌ Error uploading file:', error);
-      alert('Failed to upload file. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleCoverImageUpload = async (file: File) => {
-    try {
-      setIsLoading(true);
-      console.log(`📤 Uploading cover image: ${file.name}`);
-
-      const response = await announcementAPI.uploadFile(file, classroomId);
-
-      if (response.success && response.data) {
-        const attachment = response.data;
-        // Ensure all required fields are present
-        const completeCoverImage: AnnouncementAttachment = {
-          id: attachment.id || '',
-          name: attachment.name || file.name,
-          url: attachment.url || '',
-          type: (attachment.type as any) || 'image',
-          mimeType: attachment.mimeType || file.type || 'image/jpeg',
-          size: attachment.size || file.size,
-          uploadedAt: attachment.uploadedAt ? new Date(attachment.uploadedAt) : new Date(),
-        };
-        setCoverImage(completeCoverImage);
-        console.log(`✅ Cover image uploaded:`, completeCoverImage);
-      }
-    } catch (error) {
-      console.error('❌ Error uploading cover image:', error);
-      alert('Failed to upload cover image. Please try again.');
-    } finally {
-      setIsLoading(false);
+      console.error('Error uploading file:', error);
     }
   };
 
   const removeAttachment = (attachmentId: string) => {
     setAttachments(attachments.filter(a => a.id !== attachmentId));
-  };
-
-  const removeCoverImage = () => {
-    setCoverImage(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -122,57 +73,24 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({
 
     try {
       setIsLoading(true);
-      console.log(`📢 Creating announcement: ${title}`);
-      console.log(`🎯 Classroom ID: ${classroomId}`);
-      console.log(`📎 Attachments: ${attachments.length}`);
-      console.log(`🖼️ Cover Image: ${coverImage?.name || 'None'}`);
-
-      // Ensure attachments have properly serialized dates
-      const serializedAttachments = attachments.map(att => ({
-        ...att,
-        uploadedAt: att.uploadedAt instanceof Date ? att.uploadedAt.toISOString() : att.uploadedAt,
-      }));
 
       const announcementData = {
         classroomId,
         title,
         content,
-        attachments: serializedAttachments,
-        coverImage: coverImage?.url || undefined,
-        status: isDraft ? 'draft' : 'published',
-        scheduledFor: scheduledFor ? new Date(scheduledFor).toISOString() : undefined,
-        metadata: {
-          isPinned: false,
-          priority,
-          tags: [],
-          allowComments: true,
-          requiresAck,
-        },
+        attachments,
+        status: 'published',
+        createdAt: new Date(),
       };
 
-      console.log(`📦 Sending announcement data:`, announcementData);
-
-      const response = await announcementAPI.createAnnouncement(announcementData as any);
-
-      if (response.success && response.data) {
-        console.log(`✅ Announcement created successfully`);
-        onAnnouncementCreated(response.data);
-        setTitle('');
-        setContent('');
-        setAttachments([]);
-        setCoverImage(null);
-        setPriority('normal');
-        setRequiresAck(false);
-        setIsDraft(false);
-        setScheduledFor('');
-        onClose();
-      } else {
-        alert(`Failed to create announcement: ${response.message || 'Unknown error'}`);
-      }
+      onAnnouncementCreated(announcementData);
+      setTitle('');
+      setContent('');
+      setAttachments([]);
+      onClose();
     } catch (error: any) {
-      console.error('❌ Error creating announcement:', error);
-      const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
-      alert(`Failed to create announcement: ${errorMessage}`);
+      console.error('Error creating announcement:', error);
+      alert('Failed to create announcement');
     } finally {
       setIsLoading(false);
     }
@@ -189,163 +107,41 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({
         </div>
 
         <form onSubmit={handleSubmit} className="announcement-form">
-          {/* Cover Image */}
-          {coverImage && (
-            <div className="cover-image-preview">
-              <img src={coverImage.url} alt="Cover" className="cover-img" />
-              <button
-                type="button"
-                className="btn-remove-cover"
-                onClick={removeCoverImage}
-              >
-                <FaTimes />
-              </button>
-            </div>
-          )}
-
-          {!coverImage && (
-            <button
-              type="button"
-              className="btn-add-cover"
-              onClick={() => imageInputRef.current?.click()}
-            >
-              <FaImage /> Add Cover Image
-            </button>
-          )}
-
-          {/* Title */}
-          <input
-            type="text"
-            placeholder="Announcement Title"
-            value={title}
-            onChange={e => setTitle(e.target.value)}
-            className="form-input title-input"
-            required
-          />
-
-          {/* Priority & Settings */}
-          <div className="form-settings">
-            <div className="setting-group">
-              <label>Priority:</label>
-              <select
-                value={priority}
-                onChange={e => setPriority(e.target.value as any)}
-                className="priority-select"
-              >
-                <option value="normal">Normal</option>
-                <option value="high">High</option>
-                <option value="urgent">Urgent</option>
-              </select>
-            </div>
-
-            <label className="checkbox-setting">
-              <input
-                type="checkbox"
-                checked={requiresAck}
-                onChange={e => setRequiresAck(e.target.checked)}
-              />
-              <span>Requires Acknowledgment</span>
-            </label>
-
-            <label className="checkbox-setting">
-              <input
-                type="checkbox"
-                checked={isDraft}
-                onChange={e => setIsDraft(e.target.checked)}
-              />
-              <span>Save as Draft</span>
-            </label>
-          </div>
-
-          {/* Schedule */}
-          <div className="form-group">
-            <label className="form-label">
-              <FaClock /> Schedule (Optional)
-            </label>
+          <div className="form-section">
+            <label>Title *</label>
             <input
-              type="datetime-local"
-              value={scheduledFor}
-              onChange={e => setScheduledFor(e.target.value)}
-              className="form-input"
-            />
-          </div>
-
-          {/* Content Editor */}
-          <div className="editor-container">
-            <div className="editor-toolbar">
-              <button type="button" className="toolbar-btn" title="Bold">
-                <FaBold />
-              </button>
-              <button type="button" className="toolbar-btn" title="Italic">
-                <FaItalic />
-              </button>
-              <button type="button" className="toolbar-btn" title="Link">
-                <FaLink />
-              </button>
-              <button type="button" className="toolbar-btn" title="List">
-                <FaList />
-              </button>
-              <div className="toolbar-separator"></div>
-              <button
-                type="button"
-                className="toolbar-btn"
-                onClick={() => imageInputRef.current?.click()}
-                title="Add Image"
-              >
-                <FaImage />
-              </button>
-              <button
-                type="button"
-                className="toolbar-btn"
-                onClick={() => videoInputRef.current?.click()}
-                title="Add Video"
-              >
-                <FaVideo />
-              </button>
-              <button
-                type="button"
-                className="toolbar-btn"
-                onClick={() => documentInputRef.current?.click()}
-                title="Add Document"
-              >
-                <FaFile />
-              </button>
-            </div>
-
-            <textarea
-              placeholder="Write your announcement here... You can mention @students or use #hashtags"
-              value={content}
-              onChange={e => setContent(e.target.value)}
-              className="form-textarea"
+              type="text"
+              value={title}
+              onChange={e => setTitle(e.target.value)}
+              placeholder="Announcement title"
+              disabled={isLoading}
               required
             />
           </div>
 
-          {/* Attachments */}
+          <div className="form-section">
+            <label>Content *</label>
+            <textarea
+              value={content}
+              onChange={e => setContent(e.target.value)}
+              placeholder="Write your announcement..."
+              rows={5}
+              disabled={isLoading}
+              required
+            />
+          </div>
+
           {attachments.length > 0 && (
-            <div className="attachments-section">
-              <h4>Attachments ({attachments.length})</h4>
+            <div className="form-section">
+              <label>Attachments ({attachments.length})</label>
               <div className="attachments-list">
-                {attachments.map(attachment => (
-                  <div key={attachment.id} className="attachment-item">
-                    <div className="attachment-info">
-                      <span className="attachment-icon">
-                        {attachment.type === 'image' && <FaImage />}
-                        {attachment.type === 'video' && <FaVideo />}
-                        {attachment.type === 'audio' && <FaMusic />}
-                        {attachment.type === 'document' && <FaFile />}
-                      </span>
-                      <div>
-                        <p className="attachment-name">{attachment.name}</p>
-                        <p className="attachment-size">
-                          {(attachment.size / 1024 / 1024).toFixed(2)} MB
-                        </p>
-                      </div>
-                    </div>
+                {attachments.map(att => (
+                  <div key={att.id} className="attachment-item">
+                    <span>{att.name}</span>
                     <button
                       type="button"
-                      className="btn-remove-attachment"
-                      onClick={() => removeAttachment(attachment.id)}
+                      onClick={() => removeAttachment(att.id)}
+                      className="btn-remove"
                     >
                       <FaTimes />
                     </button>
@@ -355,83 +151,16 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({
             </div>
           )}
 
-          {/* Form Actions */}
           <div className="form-actions">
-            <button
-              type="button"
-              className="btn-secondary"
-              onClick={onClose}
-              disabled={isLoading}
-            >
+            <button type="button" className="btn-secondary" onClick={onClose} disabled={isLoading}>
               Cancel
             </button>
-            <button
-              type="submit"
-              className="btn-primary"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <FaSpinner className="spinner" /> Publishing...
-                </>
-              ) : (
-                <>
-                  <FaCheck /> {isDraft ? 'Save Draft' : 'Publish'}
-                </>
-              )}
+            <button type="submit" className="btn-primary" disabled={isLoading}>
+              {isLoading ? <FaSpinner className="spinner" /> : <FaCheck />}
+              {isLoading ? 'Publishing...' : 'Publish'}
             </button>
           </div>
         </form>
-
-        {/* Hidden File Inputs */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          hidden
-          onChange={e => {
-            const file = e.currentTarget.files?.[0];
-            if (file) {
-              handleCoverImageUpload(file);
-            }
-          }}
-        />
-        <input
-          ref={imageInputRef}
-          type="file"
-          accept="image/*"
-          hidden
-          onChange={e => {
-            const file = e.currentTarget.files?.[0];
-            if (file) {
-              handleFileUpload(file);
-            }
-          }}
-        />
-        <input
-          ref={videoInputRef}
-          type="file"
-          accept="video/*"
-          hidden
-          onChange={e => {
-            const file = e.currentTarget.files?.[0];
-            if (file) {
-              handleFileUpload(file);
-            }
-          }}
-        />
-        <input
-          ref={documentInputRef}
-          type="file"
-          accept=".pdf,.doc,.docx,.xls,.xlsx,.txt"
-          hidden
-          onChange={e => {
-            const file = e.currentTarget.files?.[0];
-            if (file) {
-              handleFileUpload(file);
-            }
-          }}
-        />
       </div>
     </div>
   );

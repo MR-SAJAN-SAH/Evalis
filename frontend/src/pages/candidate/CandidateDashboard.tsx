@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import AdvancedClassroom from './AdvancedClassroom';
 import ChatPage from '../../components/Chat/ChatPage';
 import NotificationCenter from '../../components/NotificationCenter';
 import { 
@@ -862,11 +861,6 @@ const CandidateDashboard: React.FC = () => {
             <div className="history-tab">
               <p className="tab-info">Coming soon...</p>
             </div>
-          )}
-
-          {/* Classroom Tab */}
-          {activeTab === 'classroom' && (
-            <AdvancedClassroom />
           )}
 
           {/* Chat Tab */}
