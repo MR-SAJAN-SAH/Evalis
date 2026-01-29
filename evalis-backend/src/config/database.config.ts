@@ -23,7 +23,15 @@ import { Paper } from '../papers/paper.entity';
 dotenv.config();
 
 // Parse DATABASE_URL if provided (for cloud deployments like Render)
-function parseDatabaseUrl(): Partial<TypeOrmModuleOptions> {
+interface DatabaseUrlConfig {
+  host?: string;
+  port?: number;
+  username?: string;
+  password?: string;
+  database?: string;
+}
+
+function parseDatabaseUrl(): DatabaseUrlConfig {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) {
     return {};
@@ -32,11 +40,11 @@ function parseDatabaseUrl(): Partial<TypeOrmModuleOptions> {
   try {
     const url = new URL(databaseUrl);
     return {
-      host: url.hostname,
-      port: url.port ? parseInt(url.port) : 5432,
-      username: url.username,
-      password: url.password,
-      database: url.pathname.slice(1), // Remove leading slash
+      host: url.hostname || undefined,
+      port: url.port ? parseInt(url.port) : undefined,
+      username: url.username || undefined,
+      password: url.password || undefined,
+      database: url.pathname.slice(1) || undefined, // Remove leading slash
     };
   } catch (error) {
     console.warn('Failed to parse DATABASE_URL, using individual env vars');
