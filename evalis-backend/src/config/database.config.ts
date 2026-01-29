@@ -62,7 +62,7 @@ export const superadminDatabaseConfig: TypeOrmModuleOptions = {
   password: databaseUrlConfig.password || process.env.SUPERADMIN_DB_PASSWORD || 'password',
   database: databaseUrlConfig.database || process.env.SUPERADMIN_DB_NAME || 'evalis_superadmin',
   entities: [SuperAdmin, SubscriptionPlan, Admin, Organization, User, UserProfile, Role, Permission, Exam, Question, ProgrammingQuestion, ExamAccess, EvaluationMapping, ExamSubmission, TeacherClassroom, ClassroomInvitation, CandidateClassroom, ClassroomAnnouncement, Paper],
-  synchronize: process.env.NODE_ENV !== 'production',
+  synchronize: true, // Auto-create schema on startup
   logging: process.env.NODE_ENV === 'development',
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 };
@@ -79,7 +79,7 @@ export function getOrganizationDatabaseConfig(
     password: databaseUrlConfig.password || process.env.SUPERADMIN_DB_PASSWORD || 'password',
     database: dbName,
     entities: [TeacherClassroom, ClassroomInvitation, CandidateClassroom, ClassroomAnnouncement],
-    synchronize: process.env.NODE_ENV !== 'production',
+    synchronize: true, // Auto-create schema on startup
     logging: process.env.NODE_ENV === 'development',
     ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
   };
