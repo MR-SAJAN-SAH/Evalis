@@ -5,6 +5,9 @@ import { TeacherSubject } from './entities/teacher-subject.entity';
 import { SubjectInvitation } from './entities/subject-invitation.entity';
 import { CandidateSubject } from './entities/candidate-subject.entity';
 import { TeacherNotification } from './entities/teacher-notification.entity';
+import { TeacherClassroom } from './entities/teacher-classroom.entity';
+import { CandidateClassroom } from './entities/candidate-classroom.entity';
+import { ClassroomAnnouncement } from './entities/classroom-announcement.entity';
 import { User } from '../users/entities/user.entity';
 import { TeacherController } from './teacher.controller';
 import { TeacherService } from './teacher.service';
@@ -20,6 +23,9 @@ import { AnnouncementController } from './announcement.controller';
       CandidateSubject,
       TeacherNotification,
       User,
+      TeacherClassroom,
+      CandidateClassroom,
+      ClassroomAnnouncement,
     ]),
     MulterModule.register({
       dest: './uploads/announcements',
