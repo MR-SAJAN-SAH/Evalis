@@ -121,24 +121,9 @@ const LoginPage: React.FC = () => {
           const { access_token, role, email: userEmail } = response.data;
           login(access_token, role, userEmail);
         } else {
-          // Regular admin login
-          const apiResponse = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              email: username,
-              password: password,
-            })
-          });
-
-          if (!apiResponse.ok) {
-            const errorData = await apiResponse.json();
-            throw new Error(errorData.message || 'Login failed');
-          }
-
-          const { access_token, role, email, organizationName, subscriptionPlan, name, userId } = await apiResponse.json();
+          // Regular admin login using authService
+          response = await authService.adminLogin(username, password, '');
+          const { access_token, role, email, organizationName, subscriptionPlan, name, userId } = response.data;
           const org = organizationName && typeof organizationName === 'string' ? organizationName : '';
           const plan = subscriptionPlan && typeof subscriptionPlan === 'string' ? subscriptionPlan : '';
           login(access_token, role, email, org, plan, userId);
