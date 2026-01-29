@@ -64,6 +64,7 @@ export const superadminDatabaseConfig: TypeOrmModuleOptions = {
   entities: [SuperAdmin, SubscriptionPlan, Admin, Organization, User, UserProfile, Role, Permission, Exam, Question, ProgrammingQuestion, ExamAccess, EvaluationMapping, ExamSubmission, TeacherClassroom, ClassroomInvitation, CandidateClassroom, ClassroomAnnouncement, Paper],
   synchronize: process.env.NODE_ENV !== 'production',
   logging: process.env.NODE_ENV === 'development',
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 };
 
 export function getOrganizationDatabaseConfig(
@@ -80,5 +81,6 @@ export function getOrganizationDatabaseConfig(
     entities: [TeacherClassroom, ClassroomInvitation, CandidateClassroom, ClassroomAnnouncement],
     synchronize: process.env.NODE_ENV !== 'production',
     logging: process.env.NODE_ENV === 'development',
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
   };
 }
