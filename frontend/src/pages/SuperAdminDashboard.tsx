@@ -79,36 +79,47 @@ const SuperAdminDashboard: React.FC = () => {
   const [editingPlan, setEditingPlan] = useState<SubscriptionPlan | null>(null);
 
   // Fetch admins and organizations on component load
+  // Build API base URL function - called once
+  const getApiBaseUrl = (): string => {
+    const backendUrl = import.meta.env.VITE_API_URL;
+    console.log('🔧 SuperAdminDashboard API Config:');
+    console.log('  VITE_API_URL:', backendUrl);
+    
+    if (backendUrl && backendUrl.startsWith('http')) {
+      const apiUrl = `${backendUrl}/api`;
+      console.log('  Using full URL:', apiUrl);
+      return apiUrl;
+    }
+    
+    // Fallback to relative path for development
+    console.log('  Using relative path: /api');
+    return '/api';
+  };
+
+  const API_URL = getApiBaseUrl();
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+        console.log('Fetching admins from:', `${API_URL}/auth/superadmin/admins`);
         
-        // Helper to build full URL
-        const getFullUrl = (path: string) => {
-          if (backendUrl.startsWith('http')) {
-            return `${backendUrl}/api${path}`;
-          }
-          return path;
-        };
-
         const [adminsRes, orgsRes] = await Promise.all([
-          fetch(getFullUrl('/auth/superadmin/admins')),
-          fetch(getFullUrl('/auth/superadmin/organizations')),
+          fetch(`${API_URL}/auth/superadmin/admins`),
+          fetch(`${API_URL}/auth/superadmin/organizations`),
         ]);
 
         if (adminsRes.ok) {
           const adminsData = await adminsRes.json();
           setAdmins(adminsData);
         } else {
-          console.error('Failed to fetch admins:', adminsRes.status);
+          console.error('Failed to fetch admins:', adminsRes.status, adminsRes.statusText);
         }
 
         if (orgsRes.ok) {
           const orgsData = await orgsRes.json();
           setOrganizations(orgsData);
         } else {
-          console.error('Failed to fetch organizations:', orgsRes.status);
+          console.error('Failed to fetch organizations:', orgsRes.status, orgsRes.statusText);
         }
       } catch (error) {
         console.error('Failed to fetch data:', error);
@@ -116,7 +127,7 @@ const SuperAdminDashboard: React.FC = () => {
     };
 
     fetchData();
-  }, []);
+  }, [API_URL]);
 
   const handleLogout = () => {
     sessionStorage.removeItem('accessToken');
@@ -138,17 +149,9 @@ const SuperAdminDashboard: React.FC = () => {
         
         // Refetch admins and organizations
         try {
-          const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-          const adminUrl = backendUrl.startsWith('http') 
-            ? `${backendUrl}/api/auth/superadmin/admins` 
-            : '/api/auth/superadmin/admins';
-          const orgUrl = backendUrl.startsWith('http')
-            ? `${backendUrl}/api/auth/superadmin/organizations`
-            : '/api/auth/superadmin/organizations';
-
           const [adminsRes, orgsRes] = await Promise.all([
-            fetch(adminUrl),
-            fetch(orgUrl),
+            fetch(`${API_URL}/auth/superadmin/admins`),
+            fetch(`${API_URL}/auth/superadmin/organizations`),
           ]);
 
           if (adminsRes.ok) {
