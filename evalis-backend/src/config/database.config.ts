@@ -22,13 +22,37 @@ import { Paper } from '../papers/paper.entity';
 
 dotenv.config();
 
+// Parse DATABASE_URL if provided (for cloud deployments like Render)
+function parseDatabaseUrl(): Partial<TypeOrmModuleOptions> {
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) {
+    return {};
+  }
+  
+  try {
+    const url = new URL(databaseUrl);
+    return {
+      host: url.hostname,
+      port: url.port ? parseInt(url.port) : 5432,
+      username: url.username,
+      password: url.password,
+      database: url.pathname.slice(1), // Remove leading slash
+    };
+  } catch (error) {
+    console.warn('Failed to parse DATABASE_URL, using individual env vars');
+    return {};
+  }
+}
+
+const databaseUrlConfig = parseDatabaseUrl();
+
 export const superadminDatabaseConfig: TypeOrmModuleOptions = {
   type: 'postgres',
-  host: process.env.SUPERADMIN_DB_HOST || 'localhost',
-  port: parseInt(process.env.SUPERADMIN_DB_PORT || '5432') || 5432,
-  username: process.env.SUPERADMIN_DB_USERNAME || 'postgres',
-  password: process.env.SUPERADMIN_DB_PASSWORD || 'password',
-  database: process.env.SUPERADMIN_DB_NAME || 'evalis_superadmin',
+  host: databaseUrlConfig.host || process.env.SUPERADMIN_DB_HOST || 'localhost',
+  port: (databaseUrlConfig.port as number) || parseInt(process.env.SUPERADMIN_DB_PORT || '5432') || 5432,
+  username: databaseUrlConfig.username || process.env.SUPERADMIN_DB_USERNAME || 'postgres',
+  password: databaseUrlConfig.password || process.env.SUPERADMIN_DB_PASSWORD || 'password',
+  database: databaseUrlConfig.database || process.env.SUPERADMIN_DB_NAME || 'evalis_superadmin',
   entities: [SuperAdmin, SubscriptionPlan, Admin, Organization, User, UserProfile, Role, Permission, Exam, Question, ProgrammingQuestion, ExamAccess, EvaluationMapping, ExamSubmission, TeacherClassroom, ClassroomInvitation, CandidateClassroom, ClassroomAnnouncement, Paper],
   synchronize: process.env.NODE_ENV !== 'production',
   logging: process.env.NODE_ENV === 'development',
@@ -37,13 +61,13 @@ export const superadminDatabaseConfig: TypeOrmModuleOptions = {
 export function getOrganizationDatabaseConfig(
   organizationName: string,
 ): TypeOrmModuleOptions {
-  const dbName = `evalis_${organizationName.toLowerCase()}`;
+  const dbName = databaseUrlConfig.database || `evalis_${organizationName.toLowerCase()}`;
   return {
     type: 'postgres',
-    host: process.env.SUPERADMIN_DB_HOST || 'localhost',
-    port: parseInt(process.env.SUPERADMIN_DB_PORT || '5432') || 5432,
-    username: process.env.SUPERADMIN_DB_USERNAME || 'postgres',
-    password: process.env.SUPERADMIN_DB_PASSWORD || 'password',
+    host: databaseUrlConfig.host || process.env.SUPERADMIN_DB_HOST || 'localhost',
+    port: (databaseUrlConfig.port as number) || parseInt(process.env.SUPERADMIN_DB_PORT || '5432') || 5432,
+    username: databaseUrlConfig.username || process.env.SUPERADMIN_DB_USERNAME || 'postgres',
+    password: databaseUrlConfig.password || process.env.SUPERADMIN_DB_PASSWORD || 'password',
     database: dbName,
     entities: [TeacherClassroom, ClassroomInvitation, CandidateClassroom, ClassroomAnnouncement],
     synchronize: process.env.NODE_ENV !== 'production',
