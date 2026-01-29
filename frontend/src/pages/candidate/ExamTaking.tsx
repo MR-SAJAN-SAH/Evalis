@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { getApiUrl } from '../../utils/apiHelper';
 import html2canvas from 'html2canvas';
 import io, { Socket } from 'socket.io-client';
 import {
@@ -541,7 +542,7 @@ const ExamTaking: React.FC = () => {
         setLoading(true);
         console.log('📚 Fetching exam:', examId);
 
-        const response = await fetch(`/api/exams/${examId}`, {
+        const response = await fetch(getApiUrl(`/exams/${examId}`), {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
@@ -607,7 +608,7 @@ const ExamTaking: React.FC = () => {
 
       try {
         console.log('🚀 Starting exam session for:', examId);
-        const response = await fetch(`/api/exams/${examId}/start`, {
+        const response = await fetch(getApiUrl(`/exams/${examId}/start`), {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -916,7 +917,7 @@ const ExamTaking: React.FC = () => {
         lastAnswer: answersPayload[answers[answers.length - 1]?.questionId],
       });
 
-      const response = await fetch(`/api/exams/${examId}/submit`, {
+      const response = await fetch(getApiUrl(`/exams/${examId}/submit`), {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,

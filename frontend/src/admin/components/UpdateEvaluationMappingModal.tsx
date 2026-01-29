@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getApiUrl } from '../../utils/apiHelper';
 import { FaTimes, FaUpload, FaCheck, FaExclamationTriangle } from 'react-icons/fa';
 import './UpdateEvaluationMappingModal.css';
 
@@ -82,7 +83,7 @@ const UpdateEvaluationMappingModal: React.FC<UpdateEvaluationMappingModalProps> 
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch(`/api/exams/${examId}/evaluation-mapping/upload`, {
+      const response = await fetch(getApiUrl(`/exams/${examId}/evaluation-mapping/upload`), {
         method: 'POST',
         body: formData,
         headers: {

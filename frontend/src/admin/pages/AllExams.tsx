@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaSearch, FaPlus, FaEdit, FaTrash, FaEye, FaChevronLeft, FaChevronRight, FaSpinner, FaGraduationCap, FaClipboardList, FaCheckCircle, FaClock, FaFilter, FaThLarge, FaList, FaRocket, FaArchive, FaUndo } from 'react-icons/fa';
+import { getApiUrl } from '../../utils/apiHelper';
 import CreateExam from '../components/exam/CreateExam';
 import ExamDetailsModal from '../components/exam/ExamDetailsModal';
 import PublishModal from '../components/exam/PublishModal';
@@ -87,8 +88,7 @@ const AllExams = () => {
   const handleDeleteExam = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this exam? This action cannot be undone.')) {
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-        const response = await fetch(`${apiUrl}/api/exams/${id}`, {
+        const response = await fetch(getApiUrl(`/exams/${id}`), {
           method: 'DELETE',
           headers: {
             Authorization: `Bearer ${sessionStorage.getItem('accessToken')}`,
@@ -124,7 +124,7 @@ const AllExams = () => {
       console.log('Sending publish request with filters:', filters);
       console.log('Selected exam:', selectedExamForPublish);
       
-      const response = await fetch(`${apiUrl}/api/exams/${selectedExamForPublish.id}/publish`, {
+      const response = await fetch(getApiUrl(`/exams/${selectedExamForPublish.id}/publish`), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -153,7 +153,7 @@ const AllExams = () => {
     if (window.confirm('Are you sure you want to archive this exam?')) {
       try {
         const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-        const response = await fetch(`${apiUrl}/api/exams/${id}/archive`, {
+        const response = await fetch(getApiUrl(`/exams/${id}/archive`), {
           method: 'PATCH',
           headers: {
             Authorization: `Bearer ${sessionStorage.getItem('accessToken')}`,
@@ -176,7 +176,7 @@ const AllExams = () => {
     if (window.confirm('Are you sure you want to unpublish this exam? It will revert to DRAFT status and candidates will no longer see it.')) {
       try {
         const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-        const response = await fetch(`${apiUrl}/api/exams/${id}/unpublish`, {
+        const response = await fetch(getApiUrl(`/exams/${id}/unpublish`), {
           method: 'PATCH',
           headers: {
             Authorization: `Bearer ${sessionStorage.getItem('accessToken')}`,

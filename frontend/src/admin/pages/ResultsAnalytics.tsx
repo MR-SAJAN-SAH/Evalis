@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FaSearch, FaFilter, FaDownload, FaChartBar, FaSpinner, FaSync, FaExclamationTriangle, FaTimes, FaCheck, FaTimes as FaX, FaChartPie, FaChartLine } from 'react-icons/fa';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { useAuth } from '../../context/AuthContext';
+import { getApiUrl } from '../../utils/apiHelper';
 
 interface AnalyticsData {
   overview: {
@@ -83,10 +84,9 @@ const ResultsAnalytics = () => {
   const fetchCandidateSubmissions = async (examId: string) => {
     try {
       setSubmissionsLoading(true);
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
       
       // Fetch submissions data
-      const submissionsResponse = await fetch(`${apiUrl}/api/exams/${examId}/submissions`, {
+      const submissionsResponse = await fetch(getApiUrl(`/exams/${examId}/submissions`), {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
@@ -100,7 +100,7 @@ const ResultsAnalytics = () => {
       console.log('📋 Submissions received:', submissionsData);
       
       // Get exam details to know the passingScore
-      const examResponse = await fetch(`${apiUrl}/api/exams/${examId}`, {
+      const examResponse = await fetch(getApiUrl(`/exams/${examId}`), {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },

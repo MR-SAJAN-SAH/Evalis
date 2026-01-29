@@ -8,6 +8,7 @@ import {
   FaSpinner,
 } from 'react-icons/fa';
 import { useAuth } from '../../../context/AuthContext';
+import { getApiUrl } from '../../../utils/apiHelper';
 import ExamBasicInfo from './ExamBasicInfo';
 import ExamSettings from './ExamSettings';
 import ExamQuestions from './ExamQuestions';
@@ -234,13 +235,12 @@ const CreateExam: React.FC<CreateExamProps> = ({ onClose, onSuccess, examId }) =
         token: `${accessToken.substring(0, 20)}...` // Log first 20 chars of token for debugging
       });
 
-      const endpoint = examId ? `/exams/${examId}` : '/exams';
+      const endpoint = examId ? getApiUrl(`/exams/${examId}`) : getApiUrl('/exams');
       const method = examId ? 'PATCH' : 'POST';
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-      console.log('🔐 Using token from AuthContext, making request to:', `${apiUrl}/api${endpoint}`);
+      console.log('🔐 Using token from AuthContext, making request to:', endpoint);
 
-      const response = await fetch(`${apiUrl}/api${endpoint}`, {
+      const response = await fetch(endpoint, {
         method,
         headers: {
           'Content-Type': 'application/json',
@@ -288,7 +288,7 @@ const CreateExam: React.FC<CreateExamProps> = ({ onClose, onSuccess, examId }) =
               correctAnswer: question.correctAnswer,
             });
             const questionResponse = await fetch(
-              `${apiUrl}/api/exams/${exam.id}/questions`,
+              getApiUrl(`/exams/${exam.id}/questions`),
               {
                 method: 'POST',
                 headers: {
@@ -318,7 +318,7 @@ const CreateExam: React.FC<CreateExamProps> = ({ onClose, onSuccess, examId }) =
         for (const question of examData.programmingQuestions) {
           try {
             const questionResponse = await fetch(
-              `${apiUrl}/api/exams/${exam.id}/programming-questions`,
+              getApiUrl(`/exams/${exam.id}/programming-questions`),
               {
                 method: 'POST',
                 headers: {

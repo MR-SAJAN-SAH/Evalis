@@ -84,7 +84,7 @@ const ExamResults: React.FC = () => {
         }
 
         // Get the full exam details with questions
-        const examResponse = await fetch(`/api/exams/${examId}`, {
+        const examResponse = await fetch(getApiUrl(`/exams/${examId}`), {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -100,7 +100,7 @@ const ExamResults: React.FC = () => {
         console.log('📚 Exam data received:', examData);
 
         // Get exam with correct answers for results view
-        const resultsResponse = await fetch(`/api/exams/${examId}/results-view`, {
+        const resultsResponse = await fetch(getApiUrl(`/exams/${examId}/results-view`), {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -115,7 +115,7 @@ const ExamResults: React.FC = () => {
         }
 
         // Get submission details with answers
-        const submissionResponse = await fetch(`/api/exams/${examId}/submission-details`, {
+        const submissionResponse = await fetch(getApiUrl(`/exams/${examId}/submission-details`), {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${accessToken}`,

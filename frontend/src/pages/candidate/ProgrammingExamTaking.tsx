@@ -111,7 +111,7 @@ const ProgrammingExamTaking: React.FC = () => {
         setLoading(true);
         console.log('📚 Fetching programming exam:', examId);
 
-        const response = await fetch(`/api/exams/${examId}`, {
+        const response = await fetch(getApiUrl(`/exams/${examId}`), {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
@@ -170,7 +170,7 @@ const ProgrammingExamTaking: React.FC = () => {
 
       try {
         console.log('🚀 Starting programming exam session for:', examId);
-        const response = await fetch(`/api/exams/${examId}/start`, {
+        const response = await fetch(getApiUrl(`/exams/${examId}/start`), {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -820,7 +820,7 @@ const ProgrammingExamTaking: React.FC = () => {
         answer: ans.code,
       }));
 
-      const response = await fetch(`/api/exams/${examId}/submit`, {
+      const response = await fetch(getApiUrl(`/exams/${examId}/submit`), {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,

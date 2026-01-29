@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaTimes, FaEdit, FaLock, FaCheckCircle, FaClock, FaBook, FaClock as FaClockIcon } from 'react-icons/fa';
+import { getApiUrl } from '../../../utils/apiHelper';
 import './styles/ExamDetailsModal.css';
 
 interface ExamDetails {
@@ -57,8 +58,7 @@ const ExamDetailsModal: React.FC<ExamDetailsModalProps> = ({
     
     try {
       setLoading(true);
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-      const response = await fetch(`${apiUrl}/api/exams/${examId}`, {
+      const response = await fetch(getApiUrl(`/exams/${examId}`), {
         headers: {
           Authorization: `Bearer ${sessionStorage.getItem('accessToken')}`,
         },
