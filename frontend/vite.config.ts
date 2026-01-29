@@ -17,4 +17,8 @@ export default defineConfig({
     },
     middlewareMode: false,
   },
+  define: {
+    // Ensure environment variables are defined at build time
+    __VITE_API_URL__: JSON.stringify(process.env.VITE_API_URL || 'http://localhost:3000'),
+  },
 })
