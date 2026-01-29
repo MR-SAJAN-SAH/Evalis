@@ -99,7 +99,7 @@ const EvaluatorDashboard: React.FC = () => {
     if (evaluatingPaper && evaluatingPaper.roll && accessToken) {
       const fetchUserInfo = async () => {
         try {
-          const response = await fetch(`/api/users/by-roll/${evaluatingPaper.roll}`, {
+          const response = await fetch(getApiUrl(`/users/by-roll/${evaluatingPaper.roll}`), {
             headers: { 'Authorization': `Bearer ${accessToken}` }
           });
           if (response.ok) {
@@ -345,7 +345,7 @@ const EvaluatorDashboard: React.FC = () => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
       
-      const response = await fetch(`/api/papers/${paper.paperid}/download`, {
+      const response = await fetch(getApiUrl(`/papers/${paper.paperid}/download`), {
         headers: { 
           'Authorization': `Bearer ${accessToken}`,
           'Accept': 'application/pdf'

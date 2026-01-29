@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getApiUrl } from '../../utils/apiHelper';
 import { FaTimes, FaEdit, FaSave, FaEye, FaEyeSlash } from 'react-icons/fa';
 import './UserDetailsModal.css';
 
@@ -80,7 +81,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
       console.log(`Fetching user profile for userId: ${userId}`);
       
       // Try multiple endpoints for better compatibility
-      let response = await fetch(`/api/auth/user/${userId}`);
+      let response = await fetch(getApiUrl(`/auth/user/${userId}`));
       
       // If the relative path fails, try with localhost
       if (!response.ok && response.status === 404) {
@@ -170,7 +171,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
         parentPhone: formData.parentPhone,
       };
 
-      const response = await fetch(`/api/auth/user/${userId}/profile`, {
+      const response = await fetch(getApiUrl(`/auth/user/${userId}/profile`), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

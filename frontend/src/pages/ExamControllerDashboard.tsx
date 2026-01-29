@@ -1257,7 +1257,7 @@ const ExamControllerDashboard: React.FC = () => {
                                 <button 
                                   onClick={async () => {
                                     try {
-                                      const response = await fetch(`/api/papers/${paper.paperid}/download`, {
+                                      const response = await fetch(getApiUrl(`/papers/${paper.paperid}/download`), {
                                         headers: { Authorization: `Bearer ${accessToken}` },
                                       });
                                       if (response.ok) {
@@ -1303,7 +1303,7 @@ const ExamControllerDashboard: React.FC = () => {
                                   onClick={() => {
                                     const notes = prompt('Add evaluation notes:');
                                     if (notes) {
-                                      fetch(`/api/papers/${paper.paperid}/notes`, {
+                                      fetch(getApiUrl(`/papers/${paper.paperid}/notes`), {
                                         method: 'PATCH',
                                         headers: {
                                           'Content-Type': 'application/json',
@@ -1356,7 +1356,7 @@ const ExamControllerDashboard: React.FC = () => {
                                 <button 
                                   onClick={() => {
                                     if (window.confirm('Are you sure you want to delete this paper?')) {
-                                      fetch(`/api/papers/${paper.paperid}`, {
+                                      fetch(getApiUrl(`/papers/${paper.paperid}`), {
                                         method: 'DELETE',
                                         headers: { Authorization: `Bearer ${accessToken}` },
                                       }).then(res => {

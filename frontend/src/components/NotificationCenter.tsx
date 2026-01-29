@@ -82,7 +82,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
 
   const handleMarkAsRead = async (notificationId: string) => {
     try {
-      const response = await fetch(`/api/notifications/${notificationId}/read`, {
+      const response = await fetch(getApiUrl(`/notifications/${notificationId}/read`), {
         method: 'PUT',
         headers: {
           Authorization: `Bearer ${accessToken}`,

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getApiUrl } from '../../utils/apiHelper';
 import { FaTimes, FaDownload, FaCheckDouble, FaCheck } from 'react-icons/fa';
 import * as XLSX from 'xlsx';
 import { useAuth } from '../../context/AuthContext';
@@ -118,7 +119,7 @@ const GetUserDetailsModal: React.FC<GetUserDetailsModalProps> = ({ organizationI
   const fetchFilterOptions = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/users/filter-options`, {
+      const response = await fetch(getApiUrl(`/users/filter-options`), {
         headers: {
           'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
