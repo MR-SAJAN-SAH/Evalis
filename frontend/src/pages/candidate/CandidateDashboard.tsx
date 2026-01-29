@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { getApiUrl } from '../../utils/apiHelper';
 import ChatPage from '../../components/Chat/ChatPage';
 import NotificationCenter from '../../components/NotificationCenter';
 import { 
@@ -112,7 +113,7 @@ const CandidateDashboard: React.FC = () => {
         console.log('🔐 Token available:', !!token);
         
         // Fetch published exams
-        const examsResponse = await fetch('/api/exams', {
+        const examsResponse = await fetch(getApiUrl('/exams'), {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -148,7 +149,7 @@ const CandidateDashboard: React.FC = () => {
         // Fetch submitted exams with scores
         let submittedExams: Exam[] = [];
         try {
-          const submissionsResponse = await fetch('/api/exams/candidate/submissions', {
+          const submissionsResponse = await fetch(getApiUrl('/exams/candidate/submissions'), {
             method: 'GET',
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -213,7 +214,7 @@ const CandidateDashboard: React.FC = () => {
   useEffect(() => {
     const fetchUnreadCount = async () => {
       try {
-        const response = await fetch('/api/notifications/unread-count', {
+        const response = await fetch(getApiUrl('/notifications/unread-count'), {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,

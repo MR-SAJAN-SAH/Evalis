@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { getApiUrl } from '../../utils/apiHelper';
 import html2canvas from 'html2canvas';
 import io, { Socket } from 'socket.io-client';
 import {
@@ -761,7 +762,7 @@ const ProgrammingExamTaking: React.FC = () => {
     setIsRunningCode(true);
     try {
       const currentAnswer = answers[currentQuestionIndex];
-      const response = await fetch('/api/programming/run-code', {
+      const response = await fetch(getApiUrl('/programming/run-code'), {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,

@@ -129,4 +129,9 @@ export class AuthController {
   async getAllOrganizations() {
     return this.authService.getAllOrganizations();
   }
+
+  @Get('debug/database-status')
+  async getDatabaseStatus() {
+    return this.authService.getDatabaseStatus();
+  }
 }

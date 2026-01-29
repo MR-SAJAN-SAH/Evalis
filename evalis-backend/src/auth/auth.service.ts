@@ -609,5 +609,66 @@ export class AuthService {
       );
     }
   }
-}
 
+  async getDatabaseStatus() {
+    try {
+      const superAdminCount = await this.superAdminRepository.count();
+      const adminCount = await this.adminRepository.count();
+      const organizationCount = await this.organizationRepository.count();
+      const subscriptionPlanCount = await this.subscriptionPlanRepository.count();
+
+      const superAdmins = await this.superAdminRepository.find();
+      const admins = await this.adminRepository.find({
+        relations: ['subscriptionPlan', 'organization'],
+      });
+      const organizations = await this.organizationRepository.find({
+        relations: ['admin'],
+      });
+      const plans = await this.subscriptionPlanRepository.find();
+
+      return {
+        status: 'Database Connection OK',
+        timestamp: new Date().toISOString(),
+        counts: {
+          superAdmins: superAdminCount,
+          admins: adminCount,
+          organizations: organizationCount,
+          subscriptionPlans: subscriptionPlanCount,
+        },
+        data: {
+          superAdmins: superAdmins.map(sa => ({
+            id: sa.id,
+            email: sa.email,
+            name: sa.name,
+            isActive: sa.isActive,
+          })),
+          admins: admins.map(a => ({
+            id: a.id,
+            name: a.name,
+            email: a.email,
+            organization: a.organization?.name || 'Not assigned',
+            subscriptionPlan: a.subscriptionPlan?.name || 'None',
+          })),
+          organizations: organizations.map(o => ({
+            id: o.id,
+            name: o.name,
+            databaseName: o.databaseName,
+            adminEmail: o.admin?.email || 'No admin',
+          })),
+          subscriptionPlans: plans.map(p => ({
+            id: p.id,
+            name: p.name,
+            pricePerYear: p.pricePerYear,
+          })),
+        },
+      };
+    } catch (error: any) {
+      console.error('Error getting database status:', error);
+      return {
+        status: 'Database Connection Error',
+        error: error.message,
+        timestamp: new Date().toISOString(),
+      };
+    }
+  }
+}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { getApiUrl } from '../utils/apiHelper';
 import {
   FaBell,
   FaCheckCircle,
@@ -57,7 +58,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
   const fetchNotifications = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/notifications', {
+      const response = await fetch(getApiUrl('/notifications'), {
         headers: {
           Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
@@ -104,7 +105,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
 
   const handleMarkAllAsRead = async () => {
     try {
-      const response = await fetch('/api/notifications/mark-all-read', {
+      const response = await fetch(getApiUrl('/notifications/mark-all-read'), {
         method: 'PUT',
         headers: {
           Authorization: `Bearer ${accessToken}`,

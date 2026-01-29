@@ -5,6 +5,7 @@ import { FaSearch, FaPlus, FaEdit, FaTrash, FaChevronLeft, FaChevronRight, FaEye
 import UserDetailsModal from '../components/UserDetailsModal';
 import GetUserDetailsModal from '../components/GetUserDetailsModal';
 import { SendEmailModal } from '../components/SendEmailModal';
+import { getApiUrl } from '../../utils/apiHelper';
 
 interface User {
   id: string;
@@ -39,7 +40,11 @@ const UserManagement = () => {
     try {
       setLoading(true);
       console.log('Fetching users for organization:', organizationName);
-      const response = await fetch(`/api/auth/users?organizationName=${organizationName}`);
+      
+      const apiUrl = getApiUrl(`/auth/users?organizationName=${organizationName}`);
+      console.log('Fetching from:', apiUrl);
+      
+      const response = await fetch(apiUrl);
       const data = await response.json();
       console.log('Raw response from backend:', data);
       
@@ -85,7 +90,7 @@ const UserManagement = () => {
 
   const handleSendEmail = async (emailData: any) => {
     try {
-      const response = await fetch('/api/email/send-to-user', {
+      const response = await fetch(getApiUrl('/email/send-to-user'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

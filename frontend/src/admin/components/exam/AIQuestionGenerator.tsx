@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FaRobot, FaTimes, FaSpinner } from 'react-icons/fa';
 import { useAuth } from '../../../context/AuthContext';
+import { getApiUrl } from '../../../utils/apiHelper';
 import './styles/AIQuestionGenerator.css';
 
 interface AIQuestionGeneratorProps {
@@ -111,7 +112,7 @@ For each question, provide a complete JSON object with:
 Return ONLY a valid JSON array with exactly ${config.numberOfQuestions} question objects. No markdown formatting, no explanations, just the JSON array.`;
 
       // Call the backend API
-      const response = await fetch('/api/ai/generate-questions', {
+      const response = await fetch(getApiUrl('/ai/generate-questions'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

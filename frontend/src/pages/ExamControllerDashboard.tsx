@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { getApiUrl } from '../utils/apiHelper';
 import {
   FaSignOutAlt,
   FaFileAlt,
@@ -104,7 +105,7 @@ const ExamControllerDashboard: React.FC = () => {
   useEffect(() => {
     const fetchPapers = async () => {
       try {
-        const response = await fetch('/api/papers', {
+        const response = await fetch(getApiUrl('/papers'), {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
@@ -375,7 +376,7 @@ const ExamControllerDashboard: React.FC = () => {
         formData.append('examType', paperFormData.examType);
         formData.append('candidateType', paperFormData.candidateType);
 
-        const response = await fetch('/api/papers/upload', {
+        const response = await fetch(getApiUrl('/papers/upload'), {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -1313,7 +1314,7 @@ const ExamControllerDashboard: React.FC = () => {
                                         if (res.ok) {
                                           alert('Notes updated successfully');
                                           // Refresh papers list
-                                          const response = fetch('/api/papers', {
+                                          const response = fetch(getApiUrl('/papers'), {
                                             headers: { Authorization: `Bearer ${accessToken}` },
                                           });
                                           response.then(r => r.json()).then(d => setPapers(d.data || []));

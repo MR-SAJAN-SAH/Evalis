@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { getApiUrl } from '../utils/apiHelper';
 import { 
   FaSignOutAlt, FaBook, FaAward, FaBell, FaCalendar, FaClock, FaCheckCircle, 
   FaChartLine, FaFilter, FaSearch, FaDownload, FaUser, FaCog, FaQuestionCircle,
@@ -63,7 +64,7 @@ const CandidateDashboard: React.FC = () => {
       try {
         setLoading(true);
         console.log('Fetching exams with token:', token?.substring(0, 20) + '...');
-        const response = await fetch('/api/exams', {
+        const response = await fetch(getApiUrl('/exams'), {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaArrowLeft, FaCheck, FaTimes, FaEye, FaSync, FaPlus, FaTrash, FaComment } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
+import { getApiUrl } from '../utils/apiHelper';
 
 const EvaluatorDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -67,7 +68,7 @@ const EvaluatorDashboard: React.FC = () => {
     if (!accessToken) return;
     try {
       setLoading(true);
-      const response = await fetch('/api/papers/evaluator/my-assignments', {
+      const response = await fetch(getApiUrl('/papers/evaluator/my-assignments'), {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
 

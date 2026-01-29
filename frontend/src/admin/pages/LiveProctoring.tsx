@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaEye, FaVideo, FaMicrophone, FaExclamationTriangle, FaCheckCircle, FaClock } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
+import { getApiUrl } from '../../utils/apiHelper';
 import io, { Socket } from 'socket.io-client';
 import './styles/LiveProctoring.css';
 
@@ -49,7 +50,7 @@ const LiveProctoring: React.FC = () => {
   const fetchLiveSessions = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/exams/submissions/live', {
+      const response = await fetch(getApiUrl('/exams/submissions/live'), {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${accessToken}`,

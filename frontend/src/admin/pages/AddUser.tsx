@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getApiUrl } from '../../utils/apiHelper';
 import { useAuth } from '../../context/AuthContext';
 import { FaArrowLeft, FaEye, FaEyeSlash } from 'react-icons/fa';
 
@@ -59,12 +60,7 @@ const AddUser = () => {
     setLoading(true);
 
     try {
-      // Build proper API URL
-      const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-      const apiUrl = backendUrl.startsWith('http') 
-        ? `${backendUrl}/api/auth/create-user`
-        : '/api/auth/create-user';
-
+      const apiUrl = getApiUrl('/auth/create-user');
       console.log('Creating user at:', apiUrl);
 
       const response = await fetch(apiUrl, {

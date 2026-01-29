@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { getApiUrl } from '../../utils/apiHelper';
 import {
   FaUsers,
   FaClipboardCheck,
@@ -39,7 +40,7 @@ const DashboardHome = () => {
           return;
         }
 
-        const response = await fetch('/api/users/total-count', {
+        const response = await fetch(getApiUrl('/users/total-count'), {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

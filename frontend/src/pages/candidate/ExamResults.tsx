@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { getApiUrl } from '../../utils/apiHelper';
 import {
   FaArrowLeft,
   FaTrophy,
@@ -61,7 +62,7 @@ const ExamResults: React.FC = () => {
         console.log('📊 Fetching exam result for:', examId);
 
         // First, get submissions to find the exam result
-        const submissionsResponse = await fetch('/api/exams/candidate/submissions', {
+        const submissionsResponse = await fetch(getApiUrl('/exams/candidate/submissions'), {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${accessToken}`,

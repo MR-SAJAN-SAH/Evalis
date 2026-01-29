@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaSearch, FaFilter, FaExclamationTriangle, FaLock, FaUser } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
+import { getApiUrl } from '../../utils/apiHelper';
 
 interface AuditLog {
   id: string;
@@ -29,7 +30,7 @@ const AuditLogs = () => {
     const fetchAuditLogs = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/audit-logs?limit=100', {
+        const response = await fetch(getApiUrl('/audit-logs?limit=100'), {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${accessToken}`,
