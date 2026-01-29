@@ -71,7 +71,14 @@ export interface ChatNotification {
   };
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+const API_BASE_URL = (() => {
+  const backend = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+  // If it's a full URL (http/https), append /api, otherwise use as-is (for relative paths)
+  if (backend.startsWith('http')) {
+    return `${backend}/api`;
+  }
+  return backend;
+})();
 const WS_URL = import.meta.env.VITE_WS_URL || 'http://localhost:3000';
 
 class ChatService {
