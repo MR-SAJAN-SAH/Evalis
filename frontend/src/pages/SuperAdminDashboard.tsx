@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { authService } from '../services/apiService';
 import {
   FaSignOutAlt,
   FaHome,
@@ -81,19 +82,33 @@ const SuperAdminDashboard: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+        
+        // Helper to build full URL
+        const getFullUrl = (path: string) => {
+          if (backendUrl.startsWith('http')) {
+            return `${backendUrl}/api${path}`;
+          }
+          return path;
+        };
+
         const [adminsRes, orgsRes] = await Promise.all([
-          fetch('/api/auth/superadmin/admins'),
-          fetch('/api/auth/superadmin/organizations'),
+          fetch(getFullUrl('/auth/superadmin/admins')),
+          fetch(getFullUrl('/auth/superadmin/organizations')),
         ]);
 
         if (adminsRes.ok) {
           const adminsData = await adminsRes.json();
           setAdmins(adminsData);
+        } else {
+          console.error('Failed to fetch admins:', adminsRes.status);
         }
 
         if (orgsRes.ok) {
           const orgsData = await orgsRes.json();
           setOrganizations(orgsData);
+        } else {
+          console.error('Failed to fetch organizations:', orgsRes.status);
         }
       } catch (error) {
         console.error('Failed to fetch data:', error);
@@ -115,47 +130,52 @@ const SuperAdminDashboard: React.FC = () => {
   const handleCreateAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('/api/auth/superadmin/create-admin', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+      // Use authService to create admin
+      const response = await authService.createAdmin(formData);
+      
+      if (response.data) {
+        alert('Admin created successfully!');
+        
+        // Refetch admins and organizations
+        try {
+          const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+          const adminUrl = backendUrl.startsWith('http') 
+            ? `${backendUrl}/api/auth/superadmin/admins` 
+            : '/api/auth/superadmin/admins';
+          const orgUrl = backendUrl.startsWith('http')
+            ? `${backendUrl}/api/auth/superadmin/organizations`
+            : '/api/auth/superadmin/organizations';
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        alert(`Error: ${errorData.message}`);
-        return;
+          const [adminsRes, orgsRes] = await Promise.all([
+            fetch(adminUrl),
+            fetch(orgUrl),
+          ]);
+
+          if (adminsRes.ok) {
+            const adminsData = await adminsRes.json();
+            setAdmins(adminsData);
+          }
+
+          if (orgsRes.ok) {
+            const orgsData = await orgsRes.json();
+            setOrganizations(orgsData);
+          }
+        } catch (err) {
+          console.error('Error refetching data:', err);
+        }
+
+        setFormData({
+          name: '',
+          email: '',
+          password: '',
+          organizationName: '',
+          subscriptionPlan: 'Free Tier',
+        });
+        setShowCreateAdminModal(false);
       }
-
-      // Refetch admins and organizations
-      const [adminsRes, orgsRes] = await Promise.all([
-        fetch('/api/auth/superadmin/admins'),
-        fetch('/api/auth/superadmin/organizations'),
-      ]);
-
-      if (adminsRes.ok) {
-        const adminsData = await adminsRes.json();
-        setAdmins(adminsData);
-      }
-
-      if (orgsRes.ok) {
-        const orgsData = await orgsRes.json();
-        setOrganizations(orgsData);
-      }
-
-      setFormData({
-        name: '',
-        email: '',
-        password: '',
-        organizationName: '',
-        subscriptionPlan: 'Free Tier',
-      });
-      setShowCreateAdminModal(false);
-      alert('Admin created successfully!');
     } catch (error: any) {
-      alert(`Failed to create admin: ${error.message}`);
+      console.error('Create admin error:', error);
+      alert(`Failed to create admin: ${error.message || error.response?.data?.message || 'Unknown error'}`);
     }
   };
 
