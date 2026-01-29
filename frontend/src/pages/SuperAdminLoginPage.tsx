@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { authService } from '../services/apiService';
 import { FaLock, FaEnvelope, FaEye, FaEyeSlash, FaSignInAlt, FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
 import './SuperAdminLoginPage.css';
 
@@ -27,22 +28,8 @@ const SuperAdminLoginPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/auth/superadmin/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: email,
-          password: password,
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Invalid credentials');
-      }
-
-      const { access_token, role, email: userEmail } = await response.json();
+      const response = await authService.superAdminLogin(email, password);
+      const { access_token, role, email: userEmail } = response.data;
 
       console.log('SuperAdmin login successful!');
       console.log('Role:', role);
