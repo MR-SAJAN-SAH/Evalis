@@ -7,7 +7,7 @@ services:
   - type: web
     name: evalis-backend
     runtime: node
-    buildCommand: cd evalis-backend && npm ci && npm run build
+    buildCommand: cd evalis-backend && NPM_CONFIG_PRODUCTION=false npm ci && npm run build
     startCommand: cd evalis-backend && npm run start:prod
     rootDir: ./
     region: singapore
