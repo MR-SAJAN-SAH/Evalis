@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { authService } from '../services/apiService';
 import { 
   FaUser, 
   FaLock, 
@@ -11,7 +12,8 @@ import {
   FaExclamationCircle,
   FaChartLine,
   FaShieldAlt,
-  FaUsersCog
+  FaUsersCog,
+  FaCrown
 } from 'react-icons/fa';
 import './LoginPage.css';
 
@@ -25,6 +27,8 @@ const LoginPage: React.FC = () => {
       // Redirect based on role
       if (role === 'admin') {
         navigate('/admin/dashboard');
+      } else if (role === 'superadmin') {
+        navigate('/superadmin/dashboard');
       } else if (role === 'evaluator') {
         navigate('/evaluator/dashboard');
       } else if (role === 'candidate') {
@@ -38,6 +42,8 @@ const LoginPage: React.FC = () => {
       }
     }
   }, [isAuthenticated, role, navigate]);
+  
+  const [loginMode, setLoginMode] = useState<'admin' | 'superadmin'>('admin');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -107,46 +113,45 @@ const LoginPage: React.FC = () => {
       setIsLoading(true);
       
       try {
-        // Real API call to backend (proxied through vite)
-        const response = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: username,
-            password: password,
-          })
-        });
+        let response;
+        
+        if (loginMode === 'superadmin') {
+          // Use authService for superadmin login
+          response = await authService.superAdminLogin(username, password);
+          const { access_token, role, email: userEmail } = response.data;
+          login(access_token, role, userEmail);
+        } else {
+          // Regular admin login
+          const apiResponse = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: username,
+              password: password,
+            })
+          });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Login failed');
+          if (!apiResponse.ok) {
+            const errorData = await apiResponse.json();
+            throw new Error(errorData.message || 'Login failed');
+          }
+
+          const { access_token, role, email, organizationName, subscriptionPlan, name, userId } = await apiResponse.json();
+          const org = organizationName && typeof organizationName === 'string' ? organizationName : '';
+          const plan = subscriptionPlan && typeof subscriptionPlan === 'string' ? subscriptionPlan : '';
+          login(access_token, role, email, org, plan, userId);
         }
-
-        const { access_token, role, email, organizationName, subscriptionPlan, name, userId } = await response.json();
         
         console.log('Login successful!');
-        console.log('Role:', role);
-        console.log('Organization:', organizationName);
-        console.log('User ID:', userId);
-        
-        // Use AuthContext login function to update global state
-        // Ensure organizationName and subscriptionPlan are always strings
-        const org = organizationName && typeof organizationName === 'string' ? organizationName : '';
-        const plan = subscriptionPlan && typeof subscriptionPlan === 'string' ? subscriptionPlan : '';
-        
-        login(access_token, role, email, org, plan, userId);
-        
         setShowSuccess(true);
         
-        // Small delay to ensure state updates then redirect
         setTimeout(() => {
-          // Redirect based on role
-          if (role === 'admin') {
-            navigate('/admin/dashboard');
+          if (loginMode === 'superadmin') {
+            navigate('/superadmin/dashboard');
           } else {
-            navigate('/');
+            navigate('/admin/dashboard');
           }
         }, 500);
 
@@ -185,6 +190,47 @@ const LoginPage: React.FC = () => {
           
           <h1 className="welcome-title">Welcome Back</h1>
           <p className="welcome-subtitle">Sign in to access your Evalis System account</p>
+          
+          {/* Login Mode Toggle Tabs */}
+          <div className="login-mode-tabs" style={{ display: 'flex', gap: '10px', marginBottom: '20px', borderBottom: '2px solid #e0e0e0' }}>
+            <button
+              type="button"
+              onClick={() => setLoginMode('admin')}
+              style={{
+                flex: 1,
+                padding: '10px 15px',
+                backgroundColor: loginMode === 'admin' ? '#007bff' : 'transparent',
+                color: loginMode === 'admin' ? 'white' : '#666',
+                border: 'none',
+                borderBottom: loginMode === 'admin' ? '3px solid #0056b3' : 'none',
+                cursor: 'pointer',
+                fontWeight: loginMode === 'admin' ? 'bold' : 'normal',
+                fontSize: '14px',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              Admin Login
+            </button>
+            <button
+              type="button"
+              onClick={() => setLoginMode('superadmin')}
+              style={{
+                flex: 1,
+                padding: '10px 15px',
+                backgroundColor: loginMode === 'superadmin' ? '#007bff' : 'transparent',
+                color: loginMode === 'superadmin' ? 'white' : '#666',
+                border: 'none',
+                borderBottom: loginMode === 'superadmin' ? '3px solid #0056b3' : 'none',
+                cursor: 'pointer',
+                fontWeight: loginMode === 'superadmin' ? 'bold' : 'normal',
+                fontSize: '14px',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              <FaCrown style={{ marginRight: '5px' }} />
+              SuperAdmin
+            </button>
+          </div>
           
           {/* Success message */}
           {showSuccess && (
