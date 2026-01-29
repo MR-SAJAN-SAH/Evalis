@@ -1,10 +1,12 @@
 import axios from 'axios';
 import type { AxiosInstance } from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const BACKEND_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_BASE_URL = `${BACKEND_BASE_URL}/api`;
 
 console.log('🔧 API Configuration:');
 console.log('  VITE_API_URL env:', import.meta.env.VITE_API_URL);
+console.log('  Backend URL:', BACKEND_BASE_URL);
 console.log('  Using API base URL:', API_BASE_URL);
 
 const apiClient: AxiosInstance = axios.create({
