@@ -59,7 +59,15 @@ const AddUser = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/auth/create-user', {
+      // Build proper API URL
+      const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      const apiUrl = backendUrl.startsWith('http') 
+        ? `${backendUrl}/api/auth/create-user`
+        : '/api/auth/create-user';
+
+      console.log('Creating user at:', apiUrl);
+
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -73,13 +81,14 @@ const AddUser = () => {
         }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
+        const data = await response.json();
         setError(data.message || 'Failed to create user');
+        setLoading(false);
         return;
       }
 
+      const data = await response.json();
       setSuccess('User created successfully!');
       setTimeout(() => {
         navigate('/admin/users');
